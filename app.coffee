@@ -28,8 +28,9 @@ Util = imports.Mousetile.util
 Region = imports.Mousetile.region
 Clutter = imports.gi.Clutter
 
-W = 600
-H = 600
+W = 1920
+H = 1080
+MIN_SIZE = 50
 C = Region.Region
 
 # Alternate between `true` and `false`
@@ -72,12 +73,10 @@ main = ->
 
   stage = Clutter.Stage.get_default()
   stage.title = "Mousetile Clutter Test"
+  stage.set_size(W, H) #worksformewontfix
 
-  tree = create_tree(select_alternate(true), 5)
-#  tree = new C(50, 50)
-  tree.native.set_position(20, 20)
-#  tree.native.set_width(50)
-#  tree.native.set_height(50)
+  tree = create_tree(select_alternate(false), 10)
+  tree.native.set_position(0, 0)
   stage.add_child(tree.native)
 
   layout_and_show(tree)

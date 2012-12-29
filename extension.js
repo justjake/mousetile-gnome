@@ -3,6 +3,15 @@ const St = imports.gi.St;
 const Main = imports.ui.main;
 const Tweener = imports.ui.tweener;
 
+const ExtensionUtils = imports.misc.extensionUtils;
+const NS = ExtensionUtils.getCurrentExtension();
+
+// Import classes
+      NS.util = NS.imports.util
+const CONSTANTS = NS.util.CONSTANTS
+const Rect = NS.imports.Rect
+const Region = NS.imports.Region
+
 let text, button;
 
 function _hideHello() {
