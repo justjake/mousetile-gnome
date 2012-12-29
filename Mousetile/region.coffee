@@ -9,6 +9,8 @@
 # ###
 
 #= require "container"
+ContainerLib = imports.Mousetile.container
+Container = ContainerLib.Container
 
 class Region extends Container
     # Constants

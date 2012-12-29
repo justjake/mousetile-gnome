@@ -9,14 +9,17 @@
 #= require "rect"
 #= require "seam"
 
+RectLib = imports.Mousetile.rect
+Rect = RectLib.Rect
+
 class Container extends Rect
     # Constants
-    VERTICAL = false
-    HORIZONTAL = true
+    VERTICAL = Constants.VERTICAL
+    HORIZONTAL = Constants.HORIZONTAL
 
     # when splitting / adding windows
-    BEFORE = true
-    AFTER  = false
+    BEFORE = Constants.BEFORE
+    AFTER  = Constants.AFTER
 
     # space between child rectangles
     SPACING = 5
@@ -125,6 +128,11 @@ class Container extends Rect
         # lay out seams
         @layoutSeams()
 
+
+    each: (fn) ->
+      fn.call(this)
+      for w in @managed_windows
+        w.each(fn)
 
     # lay out this item, then lay out child items that need it
     layoutRecursive: (layout_all = false) ->

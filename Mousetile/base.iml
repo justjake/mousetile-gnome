@@ -4,6 +4,9 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="GJS - /usr/lib/gjs-1.0" level="application" />
+    <orderEntry type="library" name="GJS - /usr/share/gjs-1.0" level="application" />
+    <orderEntry type="library" name="GJS - Gnome Shell - /usr/share/gnome-shell/js" level="application" />
   </component>
 </module>
 
