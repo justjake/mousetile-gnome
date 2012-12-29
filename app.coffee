@@ -44,12 +44,12 @@ select_alternate = (initial) ->
 create_tree = (dir_selector, count) ->
   # base case: return a plain container
   if count == 0
-    return new C(400, 400)
+    return new C(W, H)
 
   # reverse the direction
   root = new C(W, H, dir_selector())
 
-  empty_child = new C(400, 400)
+  empty_child = new C(W, H)
 
   # sub-tree
   full_child = create_tree(dir_selector, count - 1)
@@ -68,15 +68,21 @@ layout_and_show = (tree) ->
 
 # Create a stage and run the demo
 main = ->
+  Clutter.init(null, null)
+
   stage = Clutter.Stage.get_default()
   stage.title = "Mousetile Clutter Test"
-  stage.show()
 
   tree = create_tree(select_alternate(true), 5)
+#  tree = new C(50, 50)
+  tree.native.set_position(20, 20)
+#  tree.native.set_width(50)
+#  tree.native.set_height(50)
   stage.add_child(tree.native)
 
   layout_and_show(tree)
 
+  stage.show()
   Clutter.main()
   stage.destroy()
 

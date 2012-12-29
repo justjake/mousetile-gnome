@@ -10,14 +10,11 @@
 #   background: rgba(#f00, 0.1)
 ####
 
-# Define constants
-if imports?
-  `const Util = imports.Mousetile.util`
-  Constants = Util.Constants
+Util = imports.Mousetile.util
 
 # Abstract class
-class AbstractRect extends Id
-  NO_PARENT = Constants.NO_PARENT
+class AbstractRect extends Util.Id
+  NO_PARENT = Util.Constants.NO_PARENT
 
   constructor: (width = 0, height = 0) ->
     super()
@@ -128,8 +125,9 @@ class ClutterRect extends AbstractRect
   Clutter = imports.gi.Clutter
 
   constructor: (width = 0, height = 0) ->
-    @native = new Clutter.ClutterActor()
-    super()
+    @native = new Clutter.Actor()
+    @native.set_background_color(Util.Constants.MAIN_COLOR)
+    super(width, height)
 
   # Child management
 
@@ -161,11 +159,12 @@ class ClutterRect extends AbstractRect
 
 
 # choose which one should be Rect
-if (window?)
-  # Write it directly to the window for now
-  # TODO: require style BS? Function wrapper with `exports`?
-  Rect = DomRect
-else
-  # woot woot here we go with GJS
-  Rect = ClutterRect
+#if (window?)
+#  # Write it directly to the window for now
+#  # TODO: require style BS? Function wrapper with `exports`?
+#  Rect = DomRect
+#else
+#  # woot woot here we go with GJS
+#  Rect = ClutterRect
 
+Rect = ClutterRect

@@ -28,7 +28,7 @@ class Region extends Container
     get = (obj, name, params...) ->
         obj["get#{name}"].apply(obj, params)
     set = (obj, name, params...) ->
-        console.log("setting #{name} on #{obj} to #{params}")
+        Util.log("setting #{name} on #{obj} to #{params}")
         obj["set#{name}"].apply(obj, params)
 
     # transform existing windows ratios to make room for new window

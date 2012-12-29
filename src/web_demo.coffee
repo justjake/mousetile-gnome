@@ -81,7 +81,7 @@ window.onload = ->
 
     window.root = root =  create_tree(select_alternate(true), 15)
     root.layoutRecursive(true)
-    console.log(root)
+    Util.Log(root)
 
     # break abstractions
     document.body.appendChild(root.native)

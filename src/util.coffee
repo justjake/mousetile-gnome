@@ -3,6 +3,9 @@
 # Especially getters/setters
 ####
 
+is_gjs = -> # this function makes no sense: GSJ can't reach this before using GJS imports
+  true # TODO: make is_gjs a thing
+
 # Constants
 Constants = {
   # layout directions
@@ -20,10 +23,48 @@ Constants = {
   NO_PARENT: null
 }
 
-# Library Management
-is_gjs = -> # this function makes no sense: GSJ can't reach this before using GJS imports
-  (imports? and not window?)
 
+# Add global colors for GJS
+if is_gjs()
+  Clutter = imports.gi.Clutter
+  Constants.MAIN_COLOR = new Clutter.Color {
+    red: 0
+    green: 0
+    blue: 255
+    alpha: 15
+  }
+  Constants.SEAM_COLOR = new Clutter.Color {
+    red: 255
+    green: 0
+    blue: 0
+    alpha: 15
+  }
+
+
+# Logging
+Log = ->
+  if is_gjs()
+    for x in arguments
+      log(x)
+  else
+    console.log.apply(console, arguments)
+
+LogGroup = ->
+  if is_gjs()
+    Log("/-#{arguments[0]}--------------------------------------------------------")
+    Log.apply(null, arguments)
+  else
+    console.group.apply(console, arguments)
+
+LogGroupEnd = ->
+  if is_gjs()
+    Log("---------------------------------------------------------/")
+  else
+    console.groupEnd()
+
+
+
+# Library Management
 # get the root GJS entry file
 getCurrentFile = ->
   Gio = imports.gi.Gio
@@ -56,7 +97,7 @@ Function::property = (prop_name, fns) ->
 class Id
     uuid_counter = 0
     uuid = ->
-        uuid += 1
+        uuid_counter += 1
 
     constructor: ->
         @_id = uuid()
@@ -89,3 +130,19 @@ class Set extends Id
 
 # TODO subclass Array to use for Container.managed_windows
 # because we need a way to make sure no window is in two places at once
+
+# This is what the lib looks like when use from GJS
+Util = {
+  Constants: Constants
+
+  # Logging
+  Log: Log
+  LogGroup: LogGroup
+  LogGroupEnd: LogGroupEnd
+
+  is_gjs: is_gjs
+
+  # Classes
+  Id: Id
+  Set: Set
+}
