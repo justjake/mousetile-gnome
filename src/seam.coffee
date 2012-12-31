@@ -5,11 +5,10 @@
 #=require "util"
 #=require "rect"
 
-# Global libraries
-Lang =
 
 # Local libraries
 Util = imports.Mousetile.util
+Constants = Util.Constants
 Draggable = imports.Mousetile.draggable
 
 RectLib = imports.Mousetile.rect
@@ -17,6 +16,13 @@ Rect = RectLib.Rect
 
 DRAG_CONTROLLER = new Draggable.DraggableController()
 DRAG_CONTROLLER.enableAll()
+
+_constrain_to_direction = (dir = Constants.HORIZONTAL) ->
+  (x, y) ->
+    if dir == Constants.HORIZONTAL
+      return [x, 0]
+    else
+      return [0, y]
 
 class DomSeam extends RectLib.DomRect
   constructor: (container_parent, first_index = 0) ->
@@ -37,7 +43,7 @@ class ClutterSeam extends RectLib.ClutterRect
 ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
   @parent = parent
   @index = idx
-  @drag = DRAG_CONTROLLER.makeDraggable(this)
+  @drag = DRAG_CONTROLLER.makeDraggable(this, [_constrain_to_direction(parent.format)])
 
 
 # Write to global scope

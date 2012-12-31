@@ -87,11 +87,11 @@ class AbstractDragShadow extends Rect
     @constraints = []
 
   addConstrain: (c) ->
-    @constrains.push(c)
+    @constraints.push(c)
 
   applyConstrains: (x, y) ->
     coords = [x, y]
-    for c in @constrains
+    for c in @constraints
       coords = c.apply(this, coords)
 
     return coords
@@ -100,6 +100,9 @@ class AbstractDragShadow extends Rect
   dragBegin: ->
     # Set @drag_start here
   dragMotion: ->
+    [new_x, new_y] = @applyConstrains(@getX(), @getY())
+    @setX new_x
+    @setY new_y
   dragEnd: ->
     # call event with new x and y
     if @binding.dragEnd?
