@@ -17,7 +17,7 @@ Constants = {
   AFTER: false
 
   # size of splitters
-  SPACING: 5
+  SPACING: 7
 
   # Parenting
   NO_PARENT: null

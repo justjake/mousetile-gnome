@@ -7,47 +7,63 @@ Util = imports.Mousetile.util
 RectLib = imports.Mousetile.rect
 Rect = RectLib.Rect
 
+SPECIAL_AGENCY_KEY = Util.Constants.KEYS.CTRL
+
 # DraggableController #########################################################
 # activates and de-activates all the drag shadows
-class DraggableController
+class DraggableController extends Util.Id
   constructor: ->
+    super()
     @draggables = []
     @can_drag = false
 
-  enable: ->
-    @can_drag = true
-    for d in @draggables
-      d.show()
+  makeDraggable: (obj, constraints = []) ->
+    shadow = new DragShadow(obj)
+    @manage(shadow)
+    for c in constraints
+      shadow.addConstrain(c)
 
-  disable: ->
-    @can_drag = false
+    # GJS event activation
+    if Util.is_gjs()
+      obj.native.set_reactive(true)
+
+    return shadow
+
+  manage: (drg) ->
+    Util.Log "Controller #{this} managed #{drg}"
+    @draggables.push(drg)
+    if @can_drag
+      @enable(drg)
+    else
+      @disable(drg)
+
+
+  enable: (drg) ->
+    drg.show()
+
+  disable: (drg) ->
+    drg.hide()
+
+  enableAll: ->
     for d in @draggables
-      d.hide()
+      @enable(d)
+    @can_drag = true
+
+  disableAll: ->
+    for d in @draggables
+      @disable(d)
+    @can_drag = false
 
 # global instance
-CONTROLLER = new DraggableController()
+DefaultController = new DraggableController()
 
 # Make an object dragable. Fires the objects dragEnd event function
 # when dragging stops
 
 # Currently implemented with shadow draggables: instead of actually
 # dragging the object, create a copy and drag that
-makeDraggable  = (obj, constraints...) ->
-  shadow = new DragShadow(obj)
-  for c in constraints
-    shadow.addConstrain(c)
-  CONTROLLER.draggables.push(shadow)
-
-  if Util.is_gjs()
-    _clutterMakeDraggable(obj, shadow)
-  else
-    _domMakeDraggable(obj)
-
-  return shadow
-
-# Env-specific implementations ###################################
-_clutterMakeDraggable = (obj, shadow) ->
-  obj.native.set_reactive(true)
+makeDraggable  = (obj, constraints = []) ->
+  DefaultController.makeDraggable(obj, constraints)
 
 
 
@@ -57,8 +73,11 @@ class AbstractDragShadow extends Rect
   constructor: (to_clone) ->
     # Clone target position
     super(to_clone.getWidth(), to_clone.getHeight())
-    @setX(to_clone.getX())
-    @setY(to_clone.getY())
+    # this is now a child of the cloned obj, so we default to 0,0: Directly over the parent
+#    @setX(to_clone.getX())
+#    @setY(to_clone.getY())
+
+    to_clone.addChild(this)
 
     @binding = to_clone
 
@@ -75,13 +94,16 @@ class AbstractDragShadow extends Rect
     return coords
 
   # method stubs
-  dragBegin: -> Util.Log('Drag began', arguments...)
-  dragMotion: -> Util.Log('Drag moved', arguments...)
+  dragBegin: ->
+    # Set @drag_start here
+  dragMotion: ->
   dragEnd: ->
-    Util.Log('Drag ended', arguments...)
     # call event with new x and y
     if @binding.dragEnd?
       @binding.dragEnd(@getX(), @getY())
+    # reset position
+    @setX 0;
+    @setY 0;
 
 class ClutterDragShadow extends AbstractDragShadow
   constructor: (to_clone) ->

@@ -75,11 +75,11 @@ key_pressed = (target, event) ->
   symbol = event.get_key_symbol()
   Mousetile.Util.Log(symbol)
   if symbol == Constants.KEYS.CTRL
-    Mousetile.Draggable.CONTROLLER.enable()
+    Mousetile.Draggable.DefaultController.enableAll()
 
 key_released = (target, event) ->
   if event.get_key_symbol() == Constants.KEYS.CTRL
-    Mousetile.Draggable.CONTROLLER.disable()
+    Mousetile.Draggable.DefaultController.disableAll()
 
 # Main ########################################################################
 # Create a stage and run the demo
@@ -106,7 +106,6 @@ main = ->
   target = parent.managed_windows[0]
 
   handle = Mousetile.Draggable.makeDraggable(target)
-  parent.addChild(handle)
 
   # Set up drag controller events
   stage.connect('key-press-event', key_pressed)

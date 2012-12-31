@@ -11,6 +11,7 @@
 
 Util = imports.Mousetile.util
 Constants = Util.Constants
+Util.Log
 
 RectLib = imports.Mousetile.rect
 Rect = RectLib.Rect
@@ -19,6 +20,12 @@ SeamLib = imports.Mousetile.seam
 Seam = SeamLib.Seam
 
 class Container extends Rect
+
+    `var Util = {};` # shadow Util
+    Util.Log = ->
+    Util.LogGroup = ->
+    Util.LogGroupEnd = ->
+
     # Constants
     VERTICAL = Constants.VERTICAL
     HORIZONTAL = Constants.HORIZONTAL
