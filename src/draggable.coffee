@@ -78,20 +78,9 @@ class AbstractDragShadow extends Rect
 #    @setY(to_clone.getY())
 
     to_clone.addChild(this)
-    shadow_ref = this
 
-    clone_set_x = to_clone.setX
-    to_clone.setX = (x) ->
-      clone_set_x.call(this, x)
-      shadow_ref.setX(x)
-
-    clone_set_y = to_clone.setY
-    to_clone.setY = (y) ->
-      clone_set_y.call(this, y)
-      shadow_ref.setY(y)
-
-
-    clone_set_y = to_clone.setY
+    Util.runAlso('setWidth', to_clone, this)
+    Util.runAlso('setHeight', to_clone, this)
 
     @binding = to_clone
 

@@ -112,6 +112,20 @@ LogKeys = (obj) ->
 Function::property = (prop_name, fns) ->
     Object.defineProperty(@prototype, prop_name, fns)
 
+# Property indirection tools
+# Run an additional function each time a method is called
+bindRemoteFunction = (obj, fn_name, run_also) ->
+  old_fn = obj[fn_name]
+  obj[fn_name] = ->
+    run_also.apply(this, arguments)
+    old_fn.apply(this, arguments)
+
+# Run the local object's method whenever the remote object's method is called
+runAlso = (fn_name, remote, local) ->
+  bindRemoteFunction remote, fn_name, ->
+    local[fn_name].apply(local, arguments)
+
+
 # toString support with UUIDs
 class Id
     uuid_counter = 0
@@ -160,9 +174,13 @@ Util = {
   LogGroupEnd: LogGroupEnd
   LogKeys: LogKeys
 
-  is_gjs: is_gjs
 
   # Classes
   Id: Id
   Set: Set
+
+  # Functions
+  is_gjs: is_gjs
+  runAlso: runAlso
+  bindRemoteFunction: bindRemoteFunction
 }
