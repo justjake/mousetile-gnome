@@ -32,16 +32,6 @@ class ClutterSeam extends RectLib.ClutterRect
     @_non_native_init(container_parent, first_index)
     @native.set_background_color(Util.Constants.SEAM_COLOR)
 
-  setWidth: (x) ->
-    super(x)
-    if @drag
-      @drag.setWidth(x)
-
-  setHeight: (x) ->
-    super(x)
-    if @drag
-      @drag.setHeight(x)
-
 
 
 ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
