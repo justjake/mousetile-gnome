@@ -125,6 +125,26 @@ class ClutterDragShadow extends AbstractDragShadow
     @drag_action.connect('drag-end', Lang.bind(this, @dragEnd))
     @drag_action.connect('drag-motion', Lang.bind(this, @dragMotion))
 
+  dragMotion: (action, actor, delta_x, delta_y, data) ->
+    # Clutter 1.12.2 has 'drag-progress' which you can return false to to cancel that atomic drag movement
+    # We're supporting Clutter 1.10 becuase that's what Ubuntu 12.04 runs
+    # so we have to do signal emission plumbing
+    # see http://developer.gnome.org/clutter/1.10/ClutterDragAction.html#ClutterDragAction--x-drag-threshold
+
+    # TODO figure out how to stop event emission by name
+    # cause this won't work
+    # we'll need to import gobject
+    g_signal_stop_emission_by_name(@native, 'drag-motion')
+    # dont call super here
+    intended_x = @getX() + delta_x
+    intended_y = @getY() + delta_y
+    [x, y] = @applyConstrains(intended_x, intended_y)
+    # this math is hard
+    # TODO solve problem, time to sleep
+    new_dx = intended_x - x
+    new_dy = intended_y - y
+    @native.move_by(new_dx, new_dy)
+
 
 if Util.is_gjs()
   DragShadow = ClutterDragShadow
