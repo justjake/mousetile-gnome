@@ -24,8 +24,8 @@ Constants = {
 }
 
 
-# Add global colors for GJS
 if is_gjs()
+  # Add global colors for GJS
   Clutter = imports.gi.Clutter
   Constants.MAIN_COLOR = new Clutter.Color {
     red: 0
@@ -39,6 +39,43 @@ if is_gjs()
     blue: 0
     alpha: 15
   }
+  Constants.DRAG_COLOR = new Clutter.Color {
+    red: 255
+    green: 255
+    blue: 0
+    alpha: 50
+  }
+
+  # Library Management
+  # get the root GJS entry file
+  getCurrentFile = ->
+    Gio = imports.gi.Gio
+
+    # see http://stackoverflow.com/questions/10093102/how-to-set-a-including-path-in-the-gjs-code/14078345#14078345
+    stack = (ner Error()).stack
+
+    stackLine = stack.split('\n')[1]
+    if not stackLine
+      throw new Error('Could not find current file')
+
+    match = new RegExp('@(.+):\\d+').exec(stackLine)
+    if not match
+      throw new Error('Could not find current file')
+
+    path = match[1]
+    file = Gio.File.new_for_path(path)
+    return [
+      file.get_path()
+      file.get_parent().get_path()
+      file.get_basename()
+    ]
+
+  require = (path) ->
+    names = path.split('/')
+    cur = imports
+    for n in names
+      cur = cur[n]
+    return cur
 
 
 # Logging
@@ -62,32 +99,9 @@ LogGroupEnd = ->
   else
     console.groupEnd()
 
-
-
-# Library Management
-# get the root GJS entry file
-getCurrentFile = ->
-  Gio = imports.gi.Gio
-
-  # see http://stackoverflow.com/questions/10093102/how-to-set-a-including-path-in-the-gjs-code/14078345#14078345
-  stack = (ner Error()).stack
-
-  stackLine = stack.split('\n')[1]
-  if not stackLine
-    throw new Error('Could not find current file')
-
-  match = new RegExp('@(.+):\\d+').exec(stackLine)
-  if not match
-    throw new Error('Could not find current file')
-
-  path = match[1]
-  file = Gio.File.new_for_path(path)
-  return [
-    file.get_path()
-    file.get_parent().get_path()
-    file.get_basename()
-  ]
-
+LogKeys = (obj) ->
+  for k, _ of obj
+    Log(k)
 
 # Getters and setters using {get: ->, set: ->} maps
 Function::property = (prop_name, fns) ->

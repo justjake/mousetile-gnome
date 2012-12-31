@@ -5,14 +5,16 @@
 #=require "util"
 #=require "rect"
 
+# Global libraries
+Lang =
 
+# Local libraries
 Util = imports.Mousetile.util
 
 RectLib = imports.Mousetile.rect
 
 Rect = RectLib.Rect
 AbstractRect = RectLib.AbstractRect
-
 
 
 
@@ -34,6 +36,7 @@ class ClutterSeam extends RectLib.ClutterRect
     @index = first_index
     # add seam  class to native representation
     @native.className += " seam"
+
 
 # Write to global scope
 if Util.is_gjs()

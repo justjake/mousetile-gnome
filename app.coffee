@@ -24,14 +24,15 @@ getCurrentFile = ->
 LIB = getCurrentFile()[1]
 imports.searchPath.unshift(LIB)
 
-Util = imports.Mousetile.util
+# Libraries ##################################################################3
 Region = imports.Mousetile.region
 Clutter = imports.gi.Clutter
+Mousetile = imports.Mousetile.Mousetile
 
+# Constants ##################################################################
 W = 1920
 H = 1080
-MIN_SIZE = 50
-C = Region.Region
+C = Mousetile.Region
 
 # Alternate between `true` and `false`
 select_alternate = (initial) ->
@@ -64,16 +65,27 @@ create_tree = (dir_selector, count) ->
 
 layout_and_show = (tree) ->
   tree.each ->
-    @native.show()
+    # @native.show()
     @layout()
 
+# Event Handlers ##############################################################
+key_pressed = (target, event) ->
+  if event.keyval ==
+  Mousetile.Draggable.CONTROLLER.enable()
+
+# Main ########################################################################
 # Create a stage and run the demo
 main = ->
   Clutter.init(null, null)
 
+  # stage setup
   stage = Clutter.Stage.get_default()
   stage.title = "Mousetile Clutter Test"
   stage.set_size(W, H) #worksformewontfix
+
+  # bind key handling to enable/disable draggables
+  stage.connect('key-press-event', key_pressed)
+  stage.connect('key-release-event', key_released)
 
   tree = create_tree(select_alternate(false), 10)
   tree.native.set_position(0, 0)
@@ -81,9 +93,18 @@ main = ->
 
   layout_and_show(tree)
 
+  # Test draggable
+  parent = tree.managed_windows[1].managed_windows[1]
+  target = parent.managed_windows[0]
+
+  handle = Mousetile.Draggable.makeDraggable(target)
+  parent.addChild(handle)
+
   stage.show()
   Clutter.main()
   stage.destroy()
+
+  Mousetile.Util.LogKeys(Clutter.keysyms)
 
 
 # CHOO CHOO DO IT

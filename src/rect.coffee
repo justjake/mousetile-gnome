@@ -38,6 +38,10 @@ class AbstractRect extends Util.Id
       throw "InvalidRemoval: #{this} has no child #{rect}"
     return rect # helpful
 
+  # Visibility
+  show: ->
+  hide: ->
+
   # PROPERTIES
 
   # property: width
@@ -74,6 +78,11 @@ class DomRect extends AbstractRect
 
     # calls to set width & height for us
     super(width, heigth)
+
+  show: ->
+    @native.style.display = ""
+  hide: ->
+    @native.style.display = "none"
 
   # PROPERTIES
 
@@ -137,8 +146,14 @@ class ClutterRect extends AbstractRect
 
   removeChild: (rect) ->
     super(rect)
-    @native.remove_child(rect.nativek)
+    @native.remove_child(rect.native)
 
+
+  # Visibility
+  show: ->
+    @native.show()
+  hide: ->
+    @native.hide()
 
   # PROPERTIES
   # property: width
