@@ -30,6 +30,8 @@ Clutter = imports.gi.Clutter
 Mousetile = imports.Mousetile.Mousetile
 
 # Constants ##################################################################
+Util = Mousetile.Util
+Constants = Mousetile.Util.Constants
 W = 1920
 H = 1080
 C = Mousetile.Region
@@ -70,8 +72,14 @@ layout_and_show = (tree) ->
 
 # Event Handlers ##############################################################
 key_pressed = (target, event) ->
-  if event.keyval ==
-  Mousetile.Draggable.CONTROLLER.enable()
+  symbol = event.get_key_symbol()
+  Mousetile.Util.Log(symbol)
+  if symbol == Constants.KEYS.CTRL
+    Mousetile.Draggable.CONTROLLER.enable()
+
+key_released = (target, event) ->
+  if event.get_key_symbol() == Constants.KEYS.CTRL
+    Mousetile.Draggable.CONTROLLER.disable()
 
 # Main ########################################################################
 # Create a stage and run the demo
@@ -99,6 +107,10 @@ main = ->
 
   handle = Mousetile.Draggable.makeDraggable(target)
   parent.addChild(handle)
+
+  # Set up drag controller events
+  stage.connect('key-press-event', key_pressed)
+  stage.connect('key-press-event', key_released)
 
   stage.show()
   Clutter.main()

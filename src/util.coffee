@@ -21,6 +21,11 @@ Constants = {
 
   # Parenting
   NO_PARENT: null
+
+  KEYS: {
+    CTRL: 65507
+    ALT: 65513
+  }
 }
 
 
@@ -153,6 +158,7 @@ Util = {
   Log: Log
   LogGroup: LogGroup
   LogGroupEnd: LogGroupEnd
+  LogKeys: LogKeys
 
   is_gjs: is_gjs
 
