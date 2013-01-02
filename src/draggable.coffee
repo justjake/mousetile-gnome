@@ -87,7 +87,7 @@ class AbstractDragShadow extends Rect
     @constraints = []
 
     @mouse_is_down = false
-    @drag_start = null
+    @drag_prev_coords = null
 
 
   # Constraint functions are (x,y) coorinate filters
@@ -106,19 +106,29 @@ class AbstractDragShadow extends Rect
   # Generic mouse handling functions
   # params should be mouse x and y
   mouseDown: (x, y) ->
+    if @grabMouse?
+      @grabMouse()
     if not @mouse_is_down
       @mouse_is_down = true
-      @drag_start = [x, y]
+      @drag_prev_coords = [x, y]
 
   mouseMove: (x, y) ->
-    delta_x = x - @drag_start[0]
-    delta_y = y - @drag_start[1]
-    [new_x, new_y] = @applyConstrains(delta_x + @getX(), delta_y + @getY())
-    @setX new_x
-    @setY new_y
-    [new_x, new_y]
+    if @mouse_is_down
+      delta_x = x - @drag_prev_coords[0]
+      delta_y = y - @drag_prev_coords[1]
+      [new_x, new_y] = @applyConstrains(delta_x + @getX(), delta_y + @getY())
+      @setX new_x
+      @setY new_y
+      
+      @drag_prev_coords = [x, y]
+      
+      [new_x, new_y]
+    else
+      false
 
   mouseUp: (x, y) ->
+    if @ungrabMouse?
+      @ungrabMouse()
     @mouse_is_down = false
     @drag_start = null
 
@@ -130,20 +140,24 @@ class ClutterDragShadow extends AbstractDragShadow
     # respond to events
     @native.set_reactive(true)
 
+
     # bind event signals
     @native.connect 'button-press-event', (n, event) =>
-      Util.Log("MouseDown at x: #{event.get_x()} y: #{event.get_y()}")
-      @mouseDown(event.get_x(), event.get_y())
+      [x, y] = event.get_coords()
+      @mouseDown(x, y)
 
     @native.connect 'motion-event', (n, event) =>
-      Util.Log("motion-event #{event}")
       [x, y] = event.get_coords()
-      Util.Log("motion-event at x: #{x} y: #{y}")
-      @mouseMove(event.get_x(), event.get_y())
+      @mouseMove(x, y)
 
     @native.connect 'button-release-event', (n, event) =>
-      Util.Log("button-release-event at x: #{event.get_x()} y: #{event.get_y()}")
-      @mouseMove(event.get_x(), event.get_y())
+      [x, y] = event.get_coords()
+      @mouseUp(x, y)
+
+  grabMouse: ->
+    Clutter.grab_pointer(@native)
+  ungrabMouse: ->
+    Clutter.ungrab_pointer()
 
 
 
