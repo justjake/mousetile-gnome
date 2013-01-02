@@ -137,7 +137,8 @@ class ClutterDragShadow extends AbstractDragShadow
 
     @native.connect 'motion-event', (n, event) =>
       Util.Log("motion-event #{event}")
-      Util.Log("motion-event at x: #{event.get_x()} y: #{event.get_y()}")
+      [x, y] = event.get_coords()
+      Util.Log("motion-event at x: #{x} y: #{y}")
       @mouseMove(event.get_x(), event.get_y())
 
     @native.connect 'button-release-event', (n, event) =>
