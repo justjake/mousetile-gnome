@@ -32,6 +32,9 @@ extension on.
 
 ## Building
 
+Mousetile is written in Coffeescript, and is built using `cake`, the simple Coffeescript
+build system. Both run on NodeJS, so you'll need a recent version of Node to install Coffeescript.
+
 Mousetile uses `cake` for tasks
 
     # Show available tasks

@@ -24,6 +24,7 @@ _constrain_to_direction = (dir = Constants.HORIZONTAL) ->
     else
       return [0, y]
 
+# TODO: constrain by default to just the space between the left and right rectabgles
 _constrain_to_rect = (rect) ->
   (x, y) ->
     max_x = rect.getWidth() - Constants.SPACING
@@ -62,6 +63,7 @@ ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
   @index = idx
   @drag = DRAG_CONTROLLER.makeDraggable(this, [_constrain_to_direction(parent.format)
                                                _constrain_to_rect(parent)])
+  # RESIZE FUNCTION ###########################################################
   # event handler for drag ending
   @drag.dragEnd = (shadow) =>
 
@@ -81,6 +83,7 @@ ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
     @setX shadow.getX()
     @setY shadow.getY()
 
+    # TODO: behave respobsibly if there are more than 2 children in a region
     before_rect.needs_layout = after_rect.needs_layout = true
     before_rect.ratio += before_diff
     after_rect.ratio += after_diff
