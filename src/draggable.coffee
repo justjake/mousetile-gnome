@@ -1,6 +1,7 @@
 # Global libraries
 Lang = imports.lang
 Clutter = imports.gi.Clutter
+GObject = imports.gi.GObject
 
 # Local libraries
 Util = imports.Mousetile.util
@@ -36,7 +37,6 @@ class DraggableController extends Util.Id
       @enable(drg)
     else
       @disable(drg)
-
 
   enable: (drg) ->
     drg.show()
@@ -86,6 +86,14 @@ class AbstractDragShadow extends Rect
 
     @constraints = []
 
+    @mouse_is_down = false
+    @drag_start = null
+
+
+  # Constraint functions are (x,y) coorinate filters
+  # they are run in the order they are added, mapping the x, y points
+  # they can be used either for drag rate reduction
+  # or just to constrain x, y to be in certain ranges
   addConstrain: (c) ->
     @constraints.push(c)
 
@@ -93,8 +101,26 @@ class AbstractDragShadow extends Rect
     coords = [x, y]
     for c in @constraints
       coords = c.apply(this, coords)
-
     return coords
+
+  # Generic mouse handling functions
+  # params should be mouse x and y
+  mouseDown: (x, y) ->
+    if not @mouse_is_down
+      @mouse_is_down = true
+      @drag_start = [x, y]
+
+  mouseMove: (x, y) ->
+    delta_x = x - @drag_start[0]
+    delta_y = y - @drag_start[1]
+    [new_x, new_y] = @applyConstrains(delta_x + @getX(), delta_y + @getY())
+    @setX new_x
+    @setY new_y
+    [new_x, new_y]
+
+  mouseUp: (x, y) ->
+    @mouse_is_down = false
+    @drag_start = null
 
   # method stubs
   dragBegin: ->
@@ -131,10 +157,11 @@ class ClutterDragShadow extends AbstractDragShadow
     # so we have to do signal emission plumbing
     # see http://developer.gnome.org/clutter/1.10/ClutterDragAction.html#ClutterDragAction--x-drag-threshold
 
+    Util.Log("action: #{action}, actor: #{actor}, data: #{data}")
     # TODO figure out how to stop event emission by name
     # cause this won't work
     # we'll need to import gobject
-    g_signal_stop_emission_by_name(@native, 'drag-motion')
+    GObject.signal_stop_emission_by_name(action, 'drag-motion')
     # dont call super here
     intended_x = @getX() + delta_x
     intended_y = @getY() + delta_y
