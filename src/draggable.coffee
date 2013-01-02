@@ -122,55 +122,30 @@ class AbstractDragShadow extends Rect
     @mouse_is_down = false
     @drag_start = null
 
-  # method stubs
-  dragBegin: ->
-    # Set @drag_start here
-  dragMotion: ->
-    [new_x, new_y] = @applyConstrains(@getX(), @getY())
-    @setX new_x
-    @setY new_y
-  dragEnd: ->
-    # call event with new x and y
-    if @binding.dragEnd?
-      @binding.dragEnd(@getX(), @getY())
-    # reset position
-    @setX 0;
-    @setY 0;
-
 class ClutterDragShadow extends AbstractDragShadow
   constructor: (to_clone) ->
     super(to_clone)
     @native.set_background_color(Util.Constants.DRAG_COLOR)
-    # enable dragging
-    @drag_action = new Clutter.DragAction()
 
-    @native.add_action(@drag_action)
+    # respond to events
     @native.set_reactive(true)
 
-    @drag_action.connect('drag-begin', Lang.bind(this, @dragBegin))
-    @drag_action.connect('drag-end', Lang.bind(this, @dragEnd))
-    @drag_action.connect('drag-motion', Lang.bind(this, @dragMotion))
+    # bind event signals
+    @native.connect 'button-press-event', (n, event) =>
+      Util.Log("MouseDown at x: #{event.get_x()} y: #{event.get_y()}")
+      @mouseDown(event.get_x(), event.get_y())
 
-  dragMotion: (action, actor, delta_x, delta_y, data) ->
-    # Clutter 1.12.2 has 'drag-progress' which you can return false to to cancel that atomic drag movement
-    # We're supporting Clutter 1.10 becuase that's what Ubuntu 12.04 runs
-    # so we have to do signal emission plumbing
-    # see http://developer.gnome.org/clutter/1.10/ClutterDragAction.html#ClutterDragAction--x-drag-threshold
+    @native.connect 'motion-event', (n, event) =>
+      Util.Log("motion-event #{event}")
+      Util.Log("motion-event at x: #{event.get_x()} y: #{event.get_y()}")
+      @mouseMove(event.get_x(), event.get_y())
 
-    Util.Log("action: #{action}, actor: #{actor}, data: #{data}")
-    # TODO figure out how to stop event emission by name
-    # cause this won't work
-    # we'll need to import gobject
-    GObject.signal_stop_emission_by_name(action, 'drag-motion')
-    # dont call super here
-    intended_x = @getX() + delta_x
-    intended_y = @getY() + delta_y
-    [x, y] = @applyConstrains(intended_x, intended_y)
-    # this math is hard
-    # TODO solve problem, time to sleep
-    new_dx = intended_x - x
-    new_dy = intended_y - y
-    @native.move_by(new_dx, new_dy)
+    @native.connect 'button-release-event', (n, event) =>
+      Util.Log("button-release-event at x: #{event.get_x()} y: #{event.get_y()}")
+      @mouseMove(event.get_x(), event.get_y())
+
+
+
 
 
 if Util.is_gjs()
