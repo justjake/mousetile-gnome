@@ -13,8 +13,12 @@
 Util = imports.Mousetile.util
 
 # Abstract class
-class AbstractRect extends Util.Id
+class AbstractRect extends Util.HasSignals
   NO_PARENT = Util.Constants.NO_PARENT
+
+  # Pre-mature signal adding. Does rect really need to emit?
+  # signalsEmitted: ['resize', 'move']
+  signalsEmitted: ['parent-changed']
 
   constructor: (width = 0, height = 0) ->
     super()
@@ -25,19 +29,25 @@ class AbstractRect extends Util.Id
     @setHeight(height)
 
   # Child Management
+  # TODO: no re-adding children
   addChild: (rect) ->
-    rect.parent = this
+    if rect.parent == this
+      return # we already are in this struct
+
+    # remove from previous location
+    if rect.parent
+      rect.parent.removeChild(rect)
+
+    rect.setParent(this)
     @children.push(rect)
-    # optional child callback
-    rect.wasAddedAsChild(this) if rect.wasAddedAsChild?
+
 
   removeChild: (rect) ->
     idx = @children.indexOf(rect)
     if idx != -1
-      delete @children[idx]
-      rect.parent = NO_PARENT
+      @children.splice(idx, 1)
     else
-      throw "InvalidRemoval: #{this} has no child #{rect}"
+      throw new Error("InvalidRemoval: #{this} has no child #{rect}")
     return rect # helpful
 
   # Visibility
@@ -45,21 +55,28 @@ class AbstractRect extends Util.Id
   hide: ->
 
   # PROPERTIES
+  setParent: (new_p) ->
+    @parent = new_p
+    @emit('parent-changed', new_p)
 
   # property: width
   setWidth: (w) ->
+    # @emit('resize', width: w)
   getWidth: ->
 
   # property: height
   setHeight: (h) ->
+    # @emit('resize', height: h)
   getHeight: ->
 
   # property: x
   setX: (x) ->
+    # @emit('move', x: x)
   getX: ->
 
   # property: y
   setY: (y) ->
+    # @emit('move', y: y)
   getY: ->
 
 ###

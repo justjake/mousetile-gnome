@@ -53,19 +53,16 @@ class ClutterSeam extends RectLib.ClutterRect
     @native.connect 'button-press-event', =>
       Util.Log('derp real seam was clicked')
 
-  wasAddedAsChild: (to) ->
-    @parent.native.set_child_above_sibling(@drag.native, @native)
-
 
 
 ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
-  @parent = parent
+  parent.addChild(this)
   @index = idx
   @drag = DRAG_CONTROLLER.makeDraggable(this, [_constrain_to_direction(parent.format)
                                                _constrain_to_rect(parent)])
   # RESIZE FUNCTION ###########################################################
   # event handler for drag ending
-  @drag.dragEnd = (shadow) =>
+  @drag.connect 'drag-end', (shadow) =>
 
     [before_new_ratio, after_new_ratio] = @parent.ratioAround(shadow.getX(), shadow.getY())
 

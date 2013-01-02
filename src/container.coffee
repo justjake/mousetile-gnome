@@ -51,6 +51,7 @@ class Container extends Rect
             return 0
         return intended
 
+
     constructor: (width, height, horiz = HORIZONTAL, spacing = SPACING) ->
         super(width, height)
         @format = horiz

@@ -70,19 +70,27 @@ makeDraggable  = (obj, constraints = []) ->
 # DragShadow ##################################################################
 
 class AbstractDragShadow extends Rect
+
+  signalsEmitted: ['drag-start', 'drag-motion', 'drag-end']
+
   constructor: (to_clone) ->
     # Clone target position
     super(to_clone.getWidth(), to_clone.getHeight())
     @setX(to_clone.getX())
-    @setY(to_clone.getY() + 5)
+    @setY(to_clone.getY())
 
-    to_clone.parent.addChild(this)
+    to_clone.parent.addChild(this) if to_clone.parent
+    to_clone.connect 'parent-changed', (_, new_parent) =>
+      Util.Log("#{to_clone.parent}, #{new_parent}, #{@parent}")
+      new_parent.addChild(this)
 
     Util.runAlso('setWidth', to_clone, this)
     Util.runAlso('setHeight', to_clone, this)
 
     Util.runAlso('setX', to_clone, this)
     Util.runAlso('setY', to_clone, this)
+
+
 
     @binding = to_clone
 
@@ -115,7 +123,7 @@ class AbstractDragShadow extends Rect
       @drag_prev_coords = [x, y]
 
       # event
-      @dragStart(this) if @dragStart
+      @emit('drag-start', x, y)
 
   mouseMove: (x, y) ->
     if @mouse_is_down
@@ -132,21 +140,22 @@ class AbstractDragShadow extends Rect
       @drag_prev_coords[0] = x if new_x == desired_x
       @drag_prev_coords[1] = y if new_y == desired_y
 
-      [new_x, new_y]
-
       # event
-      @dragMotion(this, new_x, new_y) if @dragMotion
+      @emit('drag-motion', new_x, new_y)
+
+      [new_x, new_y]
     else
       false
 
   mouseUp: (x, y) ->
     if @ungrabMouse?
       @ungrabMouse()
-    @mouse_is_down = false
-    @drag_start = null
 
-    # event
-    @dragEnd(this) if @dragEnd?
+    if @mouse_is_down
+      @mouse_is_down = false
+      @drag_start = null
+
+      @emit('drag-end', x, y)
 
 class ClutterDragShadow extends AbstractDragShadow
   constructor: (to_clone) ->
@@ -156,6 +165,10 @@ class ClutterDragShadow extends AbstractDragShadow
     # respond to events
     @native.set_reactive(true)
 
+    # reorder so this is on top
+    to_clone.connect 'parent-changed', (_, new_parent) =>
+      Util.Log("#{to_clone.parent}, #{new_parent}, #{@parent}")
+      new_parent.native.set_child_above_sibling(@native, to_clone.native)
 
     # bind event signals
     @native.connect 'button-press-event', (n, event) =>

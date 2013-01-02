@@ -93,14 +93,14 @@ Log = ->
 
 LogGroup = ->
   if is_gjs()
-    Log("/-#{arguments[0]}--------------------------------------------------------")
+    Log("/-#{arguments[0]}---")
     Log.apply(null, arguments)
   else
     console.group.apply(console, arguments)
 
 LogGroupEnd = ->
   if is_gjs()
-    Log("---------------------------------------------------------/")
+    Log("----/")
   else
     console.groupEnd()
 
@@ -124,6 +124,16 @@ bindRemoteFunction = (obj, fn_name, run_also) ->
 runAlso = (fn_name, remote, local) ->
   bindRemoteFunction remote, fn_name, ->
     local[fn_name].apply(local, arguments)
+
+
+# Sanity checks
+assert = (desc, fn_or_condition) ->
+  if typeof fn_or_condition == "Function"
+    res = fn_or_condition()
+  else
+    res = fn_or_condition
+  if res is false
+    Util.Log("Failed assertion '#{desc}': #{fn_or_condition.toString()}")
 
 
 # toString support with UUIDs
@@ -161,10 +171,130 @@ class Set extends Id
     contains: (x) ->
         @_set[x] == true
 
+
 # TODO subclass Array to use for Container.managed_windows
 # because we need a way to make sure no window is in two places at once
 
+
+###
+  Signals
+  -----------------------------------------------------------------------------
+  this is an implementation of a GTK/GObject style signals system.
+
+  these signals are arbitrary non-bubbling events that can be connected to any
+  number of listening functions.
+
+  This is mostly just a coffeescript port of gjs-1.0/signals.js
+
+  Objects extending HasSignals may optionally specify an array of valid signal
+  names in thier prototype with @signalsEmitted. If you object emits "drag-start",
+  "drag-end" and "drag-motion" then you should have
+###
+class HasSignals extends Id
+
+# Class Methods #############################################################
+
+  @mixInto = (obj) ->
+    obj.connect = HasSignals::connect
+    obj.disconnect = HasSignals::disconnect
+    obj.disconnectAll = HasSignals::disconnect
+    obj.emit = HasSignals::emit
+
+  # Connection Management #####################################################
+
+  connect: (name, callback) ->
+    # Only allow functions as callbacks
+    if typeof callback != 'function'
+      throw new TypeError("must connect signal to a function")
+
+    if @signalsEmitted?
+      if not name in @signalsEmitted
+        Util.Log("Connecting undeclared signal #{name} on #{this}")
+
+    # add signal internals only if someone is listening
+    if not @_signals?
+      @_signals = {
+      connections: []
+      nextId: 1
+      # TODO: faster then gjs-1.0's simple signals array?
+      # more hashmaps, maybe?
+      }
+
+    id = @_signals.nextId
+    @_signals.nextId += 1
+
+    sig_struct = {
+      'id': id
+      'name': name
+      'callback': callback
+      'disconnected': false
+    }
+
+    ###
+    Iterating through all the signals on each emission is
+    O(n), but the Gnome developers wanted to keep things light-weight and
+    avoid memory overhead. On the web we'll be contending with Internet
+    Explorer, so maybe we should change this to signal-name-specific type
+    arrays
+    ###
+    @_signals.connections.push(sig_struct)
+
+    # Util.Log("connect: on #{name} do #{callback}")
+
+    return id
+
+  disconnect: (id) ->
+    if @_signals?
+      for c in @_signals.connections
+        if c.id == id
+          if c.disconnected
+            throw new Error("Signal handler id #{id} was already disconnected")
+
+          # the disconnected flag is for removal during signal emission
+          # herp derp coffeescript loops make this ugly and slow
+          @_signals.connections.splice(i, @_signals.connections.indexOf(c))
+
+          return
+
+    throw new Error("No signal connection with id #{id} found")
+
+  disconnectAll: ->
+    if @_signals?
+      for c in @_signals.connections
+        @disconnect(c.id)
+
+  # Signal Emission ###########################################################
+
+  emit: (name, args...) ->
+
+    if @signalsEmitted?
+      if not name in @signalsEmitted
+        Util.Log("emit: emitting undeclared signal named #{name}")
+
+    # No listeners, no actions taken
+    if not @_signals?
+      return
+
+    # filter to deal with just this signal
+    # creating this local handlers array also deals with removal/addition while
+    # emitting
+    connections = (c for c in @_signals.connections when c.name == name)
+
+    call_args = [this].concat(args)
+
+    for handler in connections
+      if not handler.disconnected
+        #try
+          res = handler.callback.apply(null, call_args)
+          return undefined if res == false # stop emitting on false from handler
+#        catch err
+#          Util.Log(err, "Error in callback for signal #{name} on #{this}")
+
+
+
+# Library Normalization #######################################################
 # This is what the lib looks like when use from GJS
+
 Util = {
   Constants: Constants
 
@@ -178,9 +308,11 @@ Util = {
   # Classes
   Id: Id
   Set: Set
+  HasSignals: HasSignals
 
   # Functions
   is_gjs: is_gjs
   runAlso: runAlso
   bindRemoteFunction: bindRemoteFunction
+  assert: assert
 }
