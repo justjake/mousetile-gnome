@@ -80,6 +80,23 @@ class Container extends Rect
     ratioOf: (child) ->
         child.ratio
 
+    # ratio before/after a row/column
+    ratioAround: (ord_or_x, or_y) ->
+      if or_y?
+        if @format is HORIZONTAL
+          ord = ord_or_x
+        else
+          ord = or_y
+
+      space = @spaceAvailible()
+      if @format is VERTICAL
+        full_space = @getHeight()
+      else
+        full_space = @getWidth()
+      transform = space / full_space
+      local_org = ord * transform
+      [local_org / space, (space - local_org) / space] # ratio space before and after the ordinal
+
     _layoutParams: ->
         params = {}
         if @format is VERTICAL

@@ -28,6 +28,8 @@ class AbstractRect extends Util.Id
   addChild: (rect) ->
     rect.parent = this
     @children.push(rect)
+    # optional child callback
+    rect.wasAddedAsChild(this) if rect.wasAddedAsChild?
 
   removeChild: (rect) ->
     idx = @children.indexOf(rect)
@@ -115,12 +117,12 @@ class DomRect extends AbstractRect
 
   # child elements are tracked independently of the DOM
   addChild: (rect) ->
-    super(rect)
     @native.appendChild(rect.native)
+    super(rect)
 
   removeChild: (rect) ->
-    super(rect)
     @native.removeChild(rect.native)
+    super(rect)
 
 
 ###
@@ -141,12 +143,12 @@ class ClutterRect extends AbstractRect
   # Child management
 
   addChild: (rect) ->
-    super(rect)
     @native.add_child(rect.native)
+    super(rect)
 
   removeChild: (rect) ->
-    super(rect)
     @native.remove_child(rect.native)
+    super(rect)
 
 
   # Visibility

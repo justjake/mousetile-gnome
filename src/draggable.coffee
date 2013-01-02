@@ -73,14 +73,16 @@ class AbstractDragShadow extends Rect
   constructor: (to_clone) ->
     # Clone target position
     super(to_clone.getWidth(), to_clone.getHeight())
-    # this is now a child of the cloned obj, so we default to 0,0: Directly over the parent
-#    @setX(to_clone.getX())
-#    @setY(to_clone.getY())
+    @setX(to_clone.getX())
+    @setY(to_clone.getY() + 5)
 
-    to_clone.addChild(this)
+    to_clone.parent.addChild(this)
 
     Util.runAlso('setWidth', to_clone, this)
     Util.runAlso('setHeight', to_clone, this)
+
+    Util.runAlso('setX', to_clone, this)
+    Util.runAlso('setY', to_clone, this)
 
     @binding = to_clone
 
@@ -112,17 +114,28 @@ class AbstractDragShadow extends Rect
       @mouse_is_down = true
       @drag_prev_coords = [x, y]
 
+      # event
+      @dragStart(this) if @dragStart
+
   mouseMove: (x, y) ->
     if @mouse_is_down
       delta_x = x - @drag_prev_coords[0]
       delta_y = y - @drag_prev_coords[1]
-      [new_x, new_y] = @applyConstrains(delta_x + @getX(), delta_y + @getY())
+      desired_x = delta_x + @getX()
+      desired_y = delta_y + @getY()
+      [new_x, new_y] = @applyConstrains(desired_x, desired_y)
       @setX new_x
       @setY new_y
-      
-      @drag_prev_coords = [x, y]
-      
+
+      # only update drag loc if that coordinate was valid
+      # intended to prevent mouse-out-of-dragger becoming a long invisible leash
+      @drag_prev_coords[0] = x if new_x == desired_x
+      @drag_prev_coords[1] = y if new_y == desired_y
+
       [new_x, new_y]
+
+      # event
+      @dragMotion(this, new_x, new_y) if @dragMotion
     else
       false
 
@@ -131,6 +144,9 @@ class AbstractDragShadow extends Rect
       @ungrabMouse()
     @mouse_is_down = false
     @drag_start = null
+
+    # event
+    @dragEnd(this) if @dragEnd?
 
 class ClutterDragShadow extends AbstractDragShadow
   constructor: (to_clone) ->
