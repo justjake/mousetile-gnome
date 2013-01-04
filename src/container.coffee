@@ -11,7 +11,6 @@
 
 Util = imports.Mousetile.util
 Constants = Util.Constants
-Util.Log
 
 RectLib = imports.Mousetile.rect
 Rect = RectLib.Rect
@@ -20,11 +19,6 @@ SeamLib = imports.Mousetile.seam
 Seam = SeamLib.Seam
 
 class Container extends Rect
-
-    `var Util = {};` # shadow Util
-    Util.Log = ->
-    Util.LogGroup = ->
-    Util.LogGroupEnd = ->
 
     # Constants
     VERTICAL = Constants.VERTICAL
@@ -41,7 +35,6 @@ class Container extends Rect
     get = (obj, name, params...) ->
         obj["get#{name}"].apply(obj, params)
     set = (obj, name, params...) ->
-        Util.Log("setting #{name} on #{obj} to #{params}")
         obj["set#{name}"].apply(obj, params)
 
     # size ratios to fixed pixel space
@@ -71,7 +64,6 @@ class Container extends Rect
     # NO padding is applied on the outside edges
     # Spacing is only used *between* children
     spaceAvailible: ->
-        Util.Log('spess', @getHeight(), @managed_windows.length, @spacing)
         if @format is VERTICAL
             @getHeight() - (@managed_windows.length - 1) * @spacing
         else
@@ -120,13 +112,11 @@ class Container extends Rect
         @needs_layout = false
         # what set of properties should we use?
         if @format is VERTICAL
-            Util.LogGroup('Vertical layout')
             ord = 'Y'
             off_ord = 'X'
             dim = 'Height'
             off_dim = 'Width'
         else
-            Util.LogGroup('Horiz layout')
             ord = 'X'
             off_ord = 'Y'
             dim = 'Width'
@@ -140,8 +130,10 @@ class Container extends Rect
             ## primary dimension
             ratio = @ratioOf(c)
             size = fix(ratio, space_availible)
-            Util.Log("layout ratio: #{ratio}, size: #{size}, spess: #{space_consumed}")
+
+            # Util.Log("layout ratio: #{ratio}, size: #{size}, spess: #{space_consumed}")
             set(c, dim, size)
+
             ## other dimension
             set(c, off_dim, get(this, off_dim))
 
@@ -153,7 +145,6 @@ class Container extends Rect
 
             # consume space
             space_consumed += size + @spacing
-        Util.LogGroupEnd()
 
         # lay out seams
         @layoutSeams()

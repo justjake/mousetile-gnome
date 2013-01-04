@@ -9,32 +9,34 @@ getCurrentFile = ->
   if not stackLine
     throw new Error('Could not find current file')
 
-  match = new RegExp('@(.+):\\d+').exec(stackLine)
+  match = new RegExp('@(.+):(\\d+)').exec(stackLine)
   if not match
     throw new Error('Could not find current file')
 
   path = match[1]
   file = Gio.File.new_for_path(path)
-  return [
-    file.get_path()
-    file.get_parent().get_path()
-    file.get_basename()
-  ]
+  return {
+    path: file.get_path()
+    dirname: file.get_parent().get_path()
+    basename: file.get_basename()
+    line_number: match[2]
+  }
 
-LIB = getCurrentFile()[1]
+LIB = getCurrentFile().dirname
 imports.searchPath.unshift(LIB)
 
-# Libraries ##################################################################3
+# Libraries ###################################################################
 Region = imports.Mousetile.region
 Clutter = imports.gi.Clutter
 Mousetile = imports.Mousetile.Mousetile
 
-# Constants ##################################################################
+# Constants ###################################################################
 Util = Mousetile.Util
 Constants = Mousetile.Util.Constants
-W = 1920
-H = 1080
+W = 1200
+H = 800
 C = Mousetile.Region
+Image = Mousetile.Image
 
 # Alternate between `true` and `false`
 select_alternate = (initial) ->
@@ -110,6 +112,10 @@ main = ->
   # Set up drag controller events
   stage.connect('key-press-event', key_pressed)
   stage.connect('key-press-event', key_released)
+
+  # try making an image
+#  img = new Image(50, 50, LIB + '/assets/swap-center.png')
+#  stage.add_child(img)
 
   stage.show()
   Clutter.main()

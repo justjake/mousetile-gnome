@@ -3,11 +3,16 @@
 # Especially getters/setters
 ####
 
+Gio = imports.gi.Gio
+
 is_gjs = -> # this function makes no sense: GSJ can't reach this before using GJS imports
   true # TODO: make is_gjs a thing
 
 # Constants
 Constants = {
+
+  DEBUG: true
+
   # layout directions
   VERTICAL: false
   HORIZONTAL: true
@@ -39,10 +44,10 @@ if is_gjs()
     alpha: 15
   }
   Constants.SEAM_COLOR = new Clutter.Color {
-    red: 255
+    red:   0
     green: 0
-    blue: 0
-    alpha: 15
+    blue:  0
+    alpha: 255
   }
   Constants.DRAG_COLOR = new Clutter.Color {
     red: 255
@@ -53,41 +58,43 @@ if is_gjs()
 
   # Library Management
   # get the root GJS entry file
-  getCurrentFile = ->
-    Gio = imports.gi.Gio
+getCurrentFile = ->
+  # see http://stackoverflow.com/questions/10093102/how-to-set-a-including-path-in-the-gjs-code/14078345#14078345
+  stack = (new Error()).stack
 
-    # see http://stackoverflow.com/questions/10093102/how-to-set-a-including-path-in-the-gjs-code/14078345#14078345
-    stack = (ner Error()).stack
+  stackLine = stack.split('\n')[1]
+  if not stackLine
+    throw new Error('Could not find current file')
 
-    stackLine = stack.split('\n')[1]
-    if not stackLine
-      throw new Error('Could not find current file')
+  match = new RegExp('@(.+):(\\d+)').exec(stackLine)
+  if not match
+    throw new Error('Could not find current file')
 
-    match = new RegExp('@(.+):\\d+').exec(stackLine)
-    if not match
-      throw new Error('Could not find current file')
-
-    path = match[1]
-    file = Gio.File.new_for_path(path)
-    return [
-      file.get_path()
-      file.get_parent().get_path()
-      file.get_basename()
-    ]
-
-  require = (path) ->
-    names = path.split('/')
-    cur = imports
-    for n in names
-      cur = cur[n]
-    return cur
+  path = match[1]
+  file = Gio.File.new_for_path(path)
+  return {
+    path: file.get_path()
+    dirname: file.get_parent().get_path()
+    basename: file.get_basename()
+    line_number: match[2]
+  }
 
 
-# Logging
+require = (path) ->
+  names = path.split('/')
+  cur = imports
+  for n in names
+    cur = cur[n]
+  return cur
+
+
+# Logging #####################################################################
 Log = ->
   if is_gjs()
+    out = ""
     for x in arguments
-      log(x)
+      out += x
+    log(out)
   else
     console.log.apply(console, arguments)
 
@@ -108,6 +115,8 @@ LogKeys = (obj) ->
   for k, _ of obj
     Log(k)
 
+# Binding tools ###############################################################
+
 # Getters and setters using {get: ->, set: ->} maps
 Function::property = (prop_name, fns) ->
     Object.defineProperty(@prototype, prop_name, fns)
@@ -126,7 +135,8 @@ runAlso = (fn_name, remote, local) ->
     local[fn_name].apply(local, arguments)
 
 
-# Sanity checks
+# Sanity checks ###############################################################
+
 assert = (desc, fn_or_condition) ->
   if typeof fn_or_condition == "Function"
     res = fn_or_condition()
@@ -136,40 +146,41 @@ assert = (desc, fn_or_condition) ->
     Util.Log("Failed assertion '#{desc}': #{fn_or_condition.toString()}")
 
 
+# Basic Classes ###############################################################
 # toString support with UUIDs
 class Id
-    uuid_counter = 0
-    uuid = ->
-        uuid_counter += 1
+  uuid_counter = 0
+  uuid = ->
+    uuid_counter += 1
 
-    constructor: ->
-        @_id = uuid()
+  constructor: ->
+    @_id = uuid()
 
-    toString: ->
-        "#{@constructor.name}<#{@_id}>"
+  toString: ->
+    "#{@constructor.name}<#{@_id}>"
 
 class Set extends Id
-    constructor: (arr) ->
-        super()
-        @_set = {}
+  constructor: (arr) ->
+    super()
+    @_set = {}
 
-        for x in arr
-            @add(x)
+    for x in arr
+      @add(x)
 
-        return this
+    return this
 
-    add: (x) ->
-        if @contains(x)
-            return false
-        @_set[x] = true
+  add: (x) ->
+    if @contains(x)
+      return false
+    @_set[x] = true
 
-    remove: (x) ->
-        if not contains(x)
-            return false
-        delete @_set[x]
+  remove: (x) ->
+    if not contains(x)
+      return false
+    delete @_set[x]
 
-    contains: (x) ->
-        @_set[x] == true
+  contains: (x) ->
+    @_set[x] == true
 
 
 # TODO subclass Array to use for Container.managed_windows
@@ -194,7 +205,7 @@ class HasSignals extends Id
 
 # Class Methods #############################################################
 
-  @mixInto = (obj) ->
+  @extend = (obj) ->
     obj.connect = HasSignals::connect
     obj.disconnect = HasSignals::disconnect
     obj.disconnectAll = HasSignals::disconnect
@@ -284,18 +295,23 @@ class HasSignals extends Id
 
     for handler in connections
       if not handler.disconnected
-        #try
+        if Constants.DEBUG
           res = handler.callback.apply(null, call_args)
           return undefined if res == false # stop emitting on false from handler
-#        catch err
-#          Util.Log(err, "Error in callback for signal #{name} on #{this}")
+        else
+          try
+            res = handler.callback.apply(null, call_args)
+            return undefined if res == false # stop emitting on false from handler
+          catch err
+            Util.Log("Error in callback for signal #{name} on #{this}")
+            Util.Log(err.stack) if err.stack
 
 
 
 # Library Normalization #######################################################
 # This is what the lib looks like when use from GJS
 
-Util = {
+exports = {
   Constants: Constants
 
   # Logging

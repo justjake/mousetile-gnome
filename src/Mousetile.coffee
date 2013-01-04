@@ -12,6 +12,7 @@ Rect = undefined
 Seam = undefined
 Container = undefined
 Region = undefined
+Image = undefined
 
 # Don't leak temp variables
 ((namespace) ->
@@ -26,6 +27,9 @@ Region = undefined
 
   RegionLib = imports.Mousetile.region
   Region = RegionLib.Region
+
+  ImageLib = imports.Mousetile.image
+  Image = ImageLib.Image
 
   Util.Log(namespace)
   print(namespace)
