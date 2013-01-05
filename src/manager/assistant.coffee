@@ -34,7 +34,7 @@ class DropActionButton extends RectLib.Rect
     @icon.setX SPACING
     @icon.setY SPACING
 
-class Assistant extends Util.HasSignals
+class Assistant extends RectLib.Rect
   SPACING = 10
   roles = ['split', 'shove']
   directions = ['top', 'left', 'bottom', 'right']
@@ -53,13 +53,13 @@ class Assistant extends Util.HasSignals
     icon_height = example_icon.getHeight()
 
     # container rect
-    @container = new RectLib.Rect(
+    super(
       icon_width * 5 + SPACING * 6,
       icon_height  * 5 + SPACING * 6
     )
 
     for role in buttons
-      @container.addChild(this[role])
+      @addChild(this[role])
 
     # lay out icons
     center_col_x = SPACING * 3 + icon_width * 2
@@ -76,6 +76,7 @@ class Assistant extends Util.HasSignals
       this[role].setX SPACING * (1 + idx) + icon_width * idx
       idx += 1
 
-    # delegate methods to @container
-    Util.proxy(this, @container, 'setX', 'getX', 'setY', 'getY', 'setParent', 'getWidth', 'getHeight')
+  # bind and show the assistant for a destination window
+  invokeOn: (dest) ->
+
 
