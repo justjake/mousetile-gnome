@@ -4,6 +4,8 @@
 Util = imports.Mousetile.util
 Constants = Util.Constants
 
+Util.Log("location defined as ")
+
 # Sub-libraries
 Draggable = imports.Mousetile.draggable
 

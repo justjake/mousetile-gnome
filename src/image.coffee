@@ -1,10 +1,17 @@
 Clutter = imports.gi.Clutter
 RectLib = imports.Mousetile.rect
+Rect = RectLib.Rect
 
-class ClutterImage extends RectLib.Rect
-  constructor: (width, height, src) ->
-    super(width, height)
-    @native = Clutter.Texture.new_from_file(src)
+class DomImage extends Rect
+  constructor: (src) ->
+    super()
+    @native = document.createElement('img')
+    @native.src = src
+
+class ClutterImage extends Rect
+  constructor: (src) ->
+    super()
+    @native = new Clutter.Texture {filename: src}
 
 Image = ClutterImage
 

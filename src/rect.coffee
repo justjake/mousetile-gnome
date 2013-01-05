@@ -200,5 +200,18 @@ class ClutterRect extends AbstractRect
 #else
 #  # woot woot here we go with GJS
 #  Rect = ClutterRect
-
 Rect = ClutterRect
+
+# Functions on rect ###########################################################
+
+center = (big, small) ->
+  x = (big.getWidth() - small.getWidth()) / 2
+  y = (big.getHeight() - small.getHeight()) / 2
+
+  x += big.getX()
+  y += big.getY()
+
+  return [x, y]
+
+exports = {}
+exports.Rect = Rect

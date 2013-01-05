@@ -134,6 +134,11 @@ runAlso = (fn_name, remote, local) ->
   bindRemoteFunction remote, fn_name, ->
     local[fn_name].apply(local, arguments)
 
+# pass through function calls to a delegate objects' methods
+proxy = (local, remote, methods...) ->
+  for method in methods
+    local[method] = -> remote[method].apply(remote, arguments)
+
 
 # Sanity checks ###############################################################
 

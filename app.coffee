@@ -24,11 +24,16 @@ getCurrentFile = ->
 
 LIB = getCurrentFile().dirname
 imports.searchPath.unshift(LIB)
+imports.Mousetile.util.Constants.LOCATION = LIB
 
 # Libraries ###################################################################
+RectLib = imports.Mousetile.rect
 Region = imports.Mousetile.region
 Clutter = imports.gi.Clutter
 Mousetile = imports.Mousetile.Mousetile
+
+# Window Manager Libraries ####################################################
+AssistantLib = imports.Mousetile.manager.assistant
 
 # Constants ###################################################################
 Util = Mousetile.Util
@@ -103,19 +108,16 @@ main = ->
 
   layout_and_show(tree)
 
-  # Test draggable
-  parent = tree.managed_windows[1].managed_windows[1]
-  target = parent.managed_windows[0]
-
-  handle = Mousetile.Draggable.makeDraggable(target)
-
   # Set up drag controller events
   stage.connect('key-press-event', key_pressed)
   stage.connect('key-press-event', key_released)
 
-  # try making an image
-#  img = new Image(50, 50, LIB + '/assets/swap-center.png')
-#  stage.add_child(img)
+  # try and use assistant
+  ast = new AssistantLib.Assistant()
+  stage.add_child(ast.container.native)
+  [x, y] = RectLib.center(tree, ast)
+  ast.setX Math.floor x
+  ast.setY Math.floor y
 
   stage.show()
   Clutter.main()
