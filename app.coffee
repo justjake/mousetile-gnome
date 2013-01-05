@@ -114,7 +114,7 @@ main = ->
 
   # try and use assistant
   ast = new AssistantLib.Assistant()
-  stage.add_child(ast.container.native)
+  stage.add_child(ast.native)
   [x, y] = RectLib.center(tree, ast)
   ast.setX Math.floor x
   ast.setY Math.floor y
