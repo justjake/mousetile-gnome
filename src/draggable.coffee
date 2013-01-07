@@ -31,7 +31,7 @@ class DraggableController extends Util.Id
     return shadow
 
   manage: (drg) ->
-    Util.Log "Controller #{this} managed #{drg}"
+    # Util.Log "Controller #{this} managed #{drg}"
     @draggables.push(drg)
     if @can_drag
       @enable(drg)

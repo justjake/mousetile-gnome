@@ -55,6 +55,31 @@ if is_gjs()
     blue: 0
     alpha: 50
   }
+  Constants.BUTTON_DEFAULT_COLOR = new Clutter.Color {
+    red: 0
+    green:0
+    blue: 0
+    alpha: Math.floor(.4 * 255)
+  }
+  Constants.BUTTON_HOVER_COLOR = new Clutter.Color {
+    red: 0
+    green: 0
+    blue: 0
+    alpha: Math.floor(.6 * 255)
+  }
+  Constants.NO_COLOR = new Clutter.Color {
+    red: 0
+    green: 0
+    blue: 0
+    alpha: 0
+  }
+else
+  Constants.MAIN_COLOR = "rgba(0, 0, 255, #{15 / 255})"
+  Constants.SEAM_COLOR = "rgba(0, 0, 0, 1)"
+  Constants.DRAG_COLOR = "rgba(255, 255, 0, #{50 / 255})"
+  Constants.BUTTON_DEFAULT_COLOR = "rgba(0, 0, 0, .4)"
+  Constants.BUTTON_HOVER_COLOR = "rgba(0, 0, 0, .6)"
+  Constants.NO_COLOR = "rgba(0, 0, 0, 0)"
 
   # Library Management
   # get the root GJS entry file

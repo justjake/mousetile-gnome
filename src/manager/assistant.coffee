@@ -15,6 +15,7 @@ allows you to select your destination:
 ###
 
 Util = imports.Mousetile.util
+Constants = Util.Constants
 RectLib = imports.Mousetile.rect
 ImageLib = imports.Mousetile.image
 
@@ -30,6 +31,10 @@ class DropActionButton extends RectLib.Rect
   constructor: (src) ->
     @icon = new ImageLib.Image(src)
     super(@icon.getWidth() + SPACING * 2, @icon.getHeight() + SPACING * 2)
+    for k, v of Util.Constants
+      Util.Log("k #{k}: #{v}")
+    Util.Log("DropActionButton: default color is #{Constants.BUTTON_DEFAULT_COLOR}")
+    @setColor(Constants.BUTTON_DEFAULT_COLOR)
     @addChild(@icon)
     @icon.setX SPACING
     @icon.setY SPACING
@@ -57,9 +62,12 @@ class Assistant extends RectLib.Rect
       icon_width * 5 + SPACING * 6,
       icon_height  * 5 + SPACING * 6
     )
+    @setColor(Constants.NO_COLOR)
 
     for role in buttons
       @addChild(this[role])
+
+    # @setColor(Util.Constants.NO_COLOR)
 
     # lay out icons
     center_col_x = SPACING * 3 + icon_width * 2

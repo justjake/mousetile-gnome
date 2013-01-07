@@ -11,6 +11,7 @@
 ####
 
 Util = imports.Mousetile.util
+Constants = Util.Constants
 
 # Abstract class
 class AbstractRect extends Util.HasSignals
@@ -27,6 +28,8 @@ class AbstractRect extends Util.HasSignals
 
     @setWidth(width)
     @setHeight(height)
+
+    @setColor(Constants.MAIN_COLOR)
 
   # Child Management
   # TODO: no re-adding children
@@ -49,6 +52,11 @@ class AbstractRect extends Util.HasSignals
     else
       throw new Error("InvalidRemoval: #{this} has no child #{rect}")
     return rect # helpful
+
+
+  # Style
+
+  setColor: (c) -> throw new Error("Must supply a native color representation")
 
   # Visibility
   show: ->
@@ -103,6 +111,11 @@ class DomRect extends AbstractRect
   hide: ->
     @native.style.display = "none"
 
+  # Style
+  setColor: (c) ->
+    @native.style.backgroundColor = c
+
+
   # PROPERTIES
 
   # property: width
@@ -154,7 +167,6 @@ class ClutterRect extends AbstractRect
 
   constructor: (width = 0, height = 0) ->
     @native = new Clutter.Actor()
-    @native.set_background_color(Util.Constants.MAIN_COLOR)
     super(width, height)
 
   # Child management
@@ -166,6 +178,10 @@ class ClutterRect extends AbstractRect
   removeChild: (rect) ->
     @native.remove_child(rect.native)
     super(rect)
+
+
+  setColor: (c) ->
+    @native.set_background_color(c)
 
 
   # Visibility
