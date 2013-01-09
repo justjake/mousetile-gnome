@@ -80,8 +80,5 @@ class Region extends Container
             @addNewWindowAtIndex(new_win, 0, side_for_new)
 
 
-
-
-
 # export global
 this.Region = Region

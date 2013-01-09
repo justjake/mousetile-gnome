@@ -33,10 +33,17 @@ Constants = {
   }
 }
 
+int = (n) -> Math.floor(n)
 
 if is_gjs()
   # Add global colors for GJS
   Clutter = imports.gi.Clutter
+  Constants.ROOT_COLOR = new Clutter.Color {
+  red: int(255/2)
+  green: int(255/2)
+  blue: int(255/2)
+  alpha: 255
+  }
   Constants.MAIN_COLOR = new Clutter.Color {
     red: 0
     green: 0

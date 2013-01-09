@@ -31,9 +31,6 @@ class DropActionButton extends RectLib.Rect
   constructor: (src) ->
     @icon = new ImageLib.Image(src)
     super(@icon.getWidth() + SPACING * 2, @icon.getHeight() + SPACING * 2)
-    for k, v of Util.Constants
-      Util.Log("k #{k}: #{v}")
-    Util.Log("DropActionButton: default color is #{Constants.BUTTON_DEFAULT_COLOR}")
     @setColor(Constants.BUTTON_DEFAULT_COLOR)
     @addChild(@icon)
     @icon.setX SPACING

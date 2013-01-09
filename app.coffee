@@ -33,8 +33,8 @@ Clutter = imports.gi.Clutter
 Mousetile = imports.Mousetile.Mousetile
 
 # Window Manager Libraries ####################################################
+Layouts = imports.Mousetile.manager.layout
 AssistantLib = imports.Mousetile.manager.assistant
-
 # Constants ###################################################################
 Util = Mousetile.Util
 Constants = Mousetile.Util.Constants
@@ -78,14 +78,13 @@ layout_and_show = (tree) ->
     @layout()
 
 # Event Handlers ##############################################################
-key_pressed = (target, event) ->
-  symbol = event.get_key_symbol()
-  Mousetile.Util.Log(symbol)
-  if symbol == Constants.KEYS.CTRL
+key_pressed = (target, sym) ->
+  Mousetile.Util.Log(sym)
+  if sym == Constants.KEYS.CTRL
     Mousetile.Draggable.DefaultController.enableAll()
 
-key_released = (target, event) ->
-  if event.get_key_symbol() == Constants.KEYS.CTRL
+key_released = (target, sym) ->
+  if sym == Constants.KEYS.CTRL
     Mousetile.Draggable.DefaultController.disableAll()
 
 # Main ########################################################################
@@ -93,31 +92,33 @@ key_released = (target, event) ->
 main = ->
   Clutter.init(null, null)
 
+  root = new Layouts.RootLayout(W, H)
+  # bind key handling to enable/disable draggables
+  root.connect('key-up', key_pressed)
+  root.connect('key-down', key_released)
+
+  tree = create_tree(select_alternate(false), 10)
+  root.addChild(tree)
+
+  layout_and_show(tree)
+
+  # try and use assistant
+  ast = new AssistantLib.Assistant()
+  root.addChild(ast)
+  [x, y] = RectLib.center(root, ast)
+  ast.setX Math.floor x
+  ast.setY Math.floor y
+
+  # Clutter setup
+
   # stage setup
   stage = Clutter.Stage.get_default()
   stage.title = "Mousetile Clutter Test"
   stage.set_size(W, H) #worksformewontfix
 
-  # bind key handling to enable/disable draggables
-  stage.connect('key-press-event', key_pressed)
-  stage.connect('key-release-event', key_released)
-
-  tree = create_tree(select_alternate(false), 10)
-  tree.native.set_position(0, 0)
-  stage.add_child(tree.native)
-
-  layout_and_show(tree)
-
-  # Set up drag controller events
-  stage.connect('key-press-event', key_pressed)
-  stage.connect('key-press-event', key_released)
-
-  # try and use assistant
-  ast = new AssistantLib.Assistant()
-  stage.add_child(ast.native)
-  [x, y] = RectLib.center(tree, ast)
-  ast.setX Math.floor x
-  ast.setY Math.floor y
+  # add root to the stage
+  stage.add_child(root.native)
+  root.native.grab_key_focus()
 
   stage.show()
   Clutter.main()

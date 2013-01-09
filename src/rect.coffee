@@ -10,6 +10,10 @@
 #   background: rgba(#f00, 0.1)
 ####
 
+# GJS imports
+Clutter = imports.gi.Clutter
+
+# Libraries
 Util = imports.Mousetile.util
 Constants = Util.Constants
 
@@ -162,11 +166,54 @@ class DomRect extends AbstractRect
 ###
 class ClutterRect extends AbstractRect
 
-  # GJS imports
-  Clutter = imports.gi.Clutter
+  # emits event name with x, y decoded from the native event
+  mouse_event = (obj, to_emit) ->
+    (_, event) ->
+      [x, y] = event.get_coords()
+      obj.emit(to_emit, x, y)
+
+  key_event = (obj, to_emit) ->
+    (_, event) ->
+      sym = event.get_key_symbol()
+      obj.emit(to_emit, sym)
+
+
+  singnalsEmitted: [
+    # layout structure
+    # should be eliminated in favor of hygenic draggables
+    'parent-changed'
+
+    # Mouse
+    'mouse-enter'
+    'mouse-leave'
+    'mouse-move'
+
+    'mouse-down'
+    'mouse-up'
+
+    # key buttons
+    'key-down'
+    'key-up'
+  ]
 
   constructor: (width = 0, height = 0) ->
     @native = new Clutter.Actor()
+
+    # Event Transformations ###################################################
+    # mouse-enter
+    @native.connect 'enter-event',  mouse_event(this,            'mouse-enter')
+    @native.connect 'motion-event', mouse_event(this,            'mouse-move')
+    @native.connect 'leave-event',  mouse_event(this,            'mouse-leave')
+
+    # mouse buttons
+    @native.connect 'button-press-event', mouse_event(this,      'mouse-down')
+    @native.connect 'button-release-event', mouse_event(this,    'mouse-up')
+
+    # key events
+    @native.connect 'key-press-event', key_event(this,           'key-down')
+    @native.connect 'key-release-event', key_event(this,         'key-up')
+
+
     super(width, height)
 
   # Child management
