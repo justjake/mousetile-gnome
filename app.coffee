@@ -77,6 +77,14 @@ layout_and_show = (tree) ->
     # @native.show()
     @layout()
 
+all_children = (tree) ->
+  res = []
+  tree.each ->
+    res.push(this)
+
+  return res
+
+
 # Event Handlers ##############################################################
 key_pressed = (target, sym) ->
   Mousetile.Util.Log(sym)
@@ -93,12 +101,15 @@ main = ->
   Clutter.init(null, null)
 
   root = new Layouts.RootLayout(W, H)
+  manager = new Layouts.LayoutController(root)
   # bind key handling to enable/disable draggables
   root.connect('key-up', key_pressed)
   root.connect('key-down', key_released)
 
   tree = create_tree(select_alternate(false), 10)
   root.addChild(tree)
+  for win in all_children(tree)
+    manager.manage(win)
 
   layout_and_show(tree)
 

@@ -35,6 +35,16 @@ Constants = {
 
 int = (n) -> Math.floor(n)
 
+
+random_color = (alpha = 15) ->
+  new Clutter.Color {
+    red: int(Math.random() * 255)
+    green: (Math.random() * 255)
+    blue: int(Math.random() * 255)
+    alpha: alpha
+  }
+
+
 if is_gjs()
   # Add global colors for GJS
   Clutter = imports.gi.Clutter

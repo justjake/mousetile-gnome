@@ -12,6 +12,20 @@
 ContainerLib = imports.Mousetile.container
 Container = ContainerLib.Container
 
+# swap two regions
+swap = (from, to) ->
+  from_parent = from.parent
+  to_parent = to.parent
+
+  from_idx = from_parent.managed_windows.indexOf(from)
+  to_idx = to_parent.managed_windows.indexOf(to)
+
+  from_parent.replaceAtIndex(to, from_idx)
+  to_parent.replaceAtIndex(from, to_idx)
+
+  from.needs_layout = to.needs_layout = true
+
+
 class Region extends Container
     # Constants
     VERTICAL = false

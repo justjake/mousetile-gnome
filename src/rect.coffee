@@ -33,7 +33,7 @@ class AbstractRect extends Util.HasSignals
     @setWidth(width)
     @setHeight(height)
 
-    @setColor(Constants.MAIN_COLOR)
+    @setColor(Util.random_color(255))
 
   # Child Management
   # TODO: no re-adding children
@@ -53,8 +53,10 @@ class AbstractRect extends Util.HasSignals
     idx = @children.indexOf(rect)
     if idx != -1
       @children.splice(idx, 1)
+      rect.setParent(NO_PARENT)
     else
-      throw new Error("InvalidRemoval: #{this} has no child #{rect}")
+      # throw new Error("InvalidRemoval: #{this} has no child #{rect}")
+      Util.Log("InvalidRemoval: #{this} has no child #{rect}")
     return rect # helpful
 
 
@@ -169,8 +171,11 @@ class ClutterRect extends AbstractRect
   # emits event name with x, y decoded from the native event
   mouse_event = (obj, to_emit) ->
     (_, event) ->
+#      if to_emit == 'mouse-enter' or to_emit == 'mouse-leave'
+#        Util.Log("event #{to_emit} in #{obj}")
       [x, y] = event.get_coords()
       obj.emit(to_emit, x, y)
+      return true
 
   key_event = (obj, to_emit) ->
     (_, event) ->
@@ -198,6 +203,7 @@ class ClutterRect extends AbstractRect
 
   constructor: (width = 0, height = 0) ->
     @native = new Clutter.Actor()
+    @native.set_reactive(true)
 
     # Event Transformations ###################################################
     # mouse-enter

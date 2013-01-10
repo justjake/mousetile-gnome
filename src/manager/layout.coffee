@@ -9,6 +9,7 @@ and bind basic event handling on for controllers
 Util = imports.Mousetile.util
 Constants = Util.Constants
 Rects = imports.Mousetile.rect
+Regions = imports.Mousetile.region
 
 class RootLayout extends Rects.Rect
   constructor: (w, h) ->
@@ -22,4 +23,52 @@ class RootLayout extends Rects.Rect
   and saving/restoring application layouts
 ###
 
-class LayoutController
+class LayoutController extends Util.HasSignals
+
+  WINDOW_DRAG_KEY = Constants.KEYS.CTRL
+
+  localize = (obj, fn) ->
+    -> fn.apply(obj, arguments)
+
+  constructor: (@root) ->
+    
+    @dragging_enabled = false
+    @dragged_window = null
+    @windows = []
+    
+    # define event handlers
+    @win_mouse_down = (from, x, y) =>
+      Util.Log("Mouse down in window: #{from}")
+      if @dragging_enabled
+        @dragged_window = from
+        
+    @win_mouse_up = (from, x, y) =>
+      Util.Log("Mouse up in window: #{from}")
+      if @dragged_window
+        Util.Log("going to swap #{from} with #{@dragged_window}")
+        # just swap windows for now
+        try
+          Regions.swap(from, @dragged_window)
+        catch err
+          @dragged_window = null
+          throw err
+        from.parent.layoutRecursive()
+        @dragged_window.parent.layoutRecursive()
+        @dragged_window = null
+      
+    # Root event handlers #####################################################
+    # enable/disable window events
+    @root.connect 'key-down', (from, sym) =>
+      if sym is WINDOW_DRAG_KEY
+        @dragging_enabled = true
+        
+    @root.connect 'key-up', (from, sym) =>
+      if sym is WINDOW_DRAG_KEY
+        @dragging_enabled = false
+      
+    
+  manage: (win) ->
+    Util.Log "Managed #{win}"
+    @windows.push(win)
+    win.connect 'mouse-down', @win_mouse_down
+    win.connect 'mouse-up', @win_mouse_up

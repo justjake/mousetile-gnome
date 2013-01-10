@@ -90,7 +90,14 @@ class AbstractDragShadow extends Rect
     Util.runAlso('setX', to_clone, this)
     Util.runAlso('setY', to_clone, this)
 
+    @connect 'mouse-down', (_, x, y) =>
+      @mouseDown(x, y)
 
+    @connect 'mouse-up', (_, x, y) =>
+      @mouseUp(x, y)
+
+    @connect 'mouse-move', (_, x, y) =>
+      @mouseMove(x, y)
 
     @binding = to_clone
 
@@ -168,20 +175,21 @@ class ClutterDragShadow extends AbstractDragShadow
     # reorder so this is on top
     to_clone.connect 'parent-changed', (_, new_parent) =>
       Util.Log("#{to_clone.parent}, #{new_parent}, #{@parent}")
+      # if new_parent
       new_parent.native.set_child_above_sibling(@native, to_clone.native)
 
     # bind event signals
-    @native.connect 'button-press-event', (n, event) =>
-      [x, y] = event.get_coords()
-      @mouseDown(x, y)
-
-    @native.connect 'motion-event', (n, event) =>
-      [x, y] = event.get_coords()
-      @mouseMove(x, y)
-
-    @native.connect 'button-release-event', (n, event) =>
-      [x, y] = event.get_coords()
-      @mouseUp(x, y)
+#    @native.connect 'button-press-event', (n, event) =>
+#      [x, y] = event.get_coords()
+#      @mouseDown(x, y)
+#
+#    @native.connect 'motion-event', (n, event) =>
+#      [x, y] = event.get_coords()
+#      @mouseMove(x, y)
+#
+#    @native.connect 'button-release-event', (n, event) =>
+#      [x, y] = event.get_coords()
+#      @mouseUp(x, y)
 
   grabMouse: ->
     Clutter.grab_pointer(@native)
