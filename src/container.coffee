@@ -196,7 +196,7 @@ class Container extends Rect
         @addChild(win)
 
         # replace in managed window queue with new window
-        @managed_windows.splice(idx, 1, win)
+        @managed_windows[idx] = win
         win.ratio = old_win.ratio
 
 

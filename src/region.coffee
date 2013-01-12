@@ -20,11 +20,18 @@ swap = (from, to) ->
   from_idx = from_parent.managed_windows.indexOf(from)
   to_idx = to_parent.managed_windows.indexOf(to)
 
-  from_parent.replaceAtIndex(to, from_idx)
-  to_parent.replaceAtIndex(from, to_idx)
+  Util.Log("moving cell #{from_idx} in #{from_parent} to cell #{to_idx} in #{to_parent}")
+
+  from_parent.removeChild(from)
+  to_parent.removeChild(to)
+
+  from_parent.addChild(to)
+  to_parent.addChild(from)
+
+  to_parent.managed_windows[to_idx] = from
+  from_parent.managed_windows[from_idx] = to
 
   from.needs_layout = to.needs_layout = true
-
 
 class Region extends Container
     # Constants
