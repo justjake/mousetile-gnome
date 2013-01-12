@@ -30,6 +30,8 @@ class LayoutController extends Util.HasSignals
   localize = (obj, fn) ->
     -> fn.apply(obj, arguments)
 
+  signalsEmitted: ["drag-enabled", "drag-disabled"]
+
   constructor: (@root) ->
     
     @dragging_enabled = false
@@ -61,10 +63,12 @@ class LayoutController extends Util.HasSignals
     @root.connect 'key-down', (from, sym) =>
       if sym is WINDOW_DRAG_KEY
         @dragging_enabled = true
+        @emit("can-drag")
         
     @root.connect 'key-up', (from, sym) =>
       if sym is WINDOW_DRAG_KEY
         @dragging_enabled = false
+        @emit("drag-enabled")
       
     
   manage: (win) ->

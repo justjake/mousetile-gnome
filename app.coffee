@@ -29,6 +29,9 @@ imports.Mousetile.util.Constants.LOCATION = LIB
 # Libraries ###################################################################
 RectLib = imports.Mousetile.rect
 Region = imports.Mousetile.region
+
+SeamLib = imports.Mousetile.seam
+
 Clutter = imports.gi.Clutter
 Mousetile = imports.Mousetile.Mousetile
 
@@ -110,6 +113,12 @@ main = ->
   root.addChild(tree)
   for win in all_children(tree)
     manager.manage(win)
+
+  # toggle seams so we can drag parent windows
+  manager.connect "drag-enabled", ->
+    SeamLib.DRAG_CONTROLLER.enableAll()
+  manager.connect "drag-enabled", ->
+    SeamLib.DRAG_CONTROLLER.disableAll()
 
   layout_and_show(tree)
 
