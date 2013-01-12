@@ -88,16 +88,6 @@ all_children = (tree) ->
   return res
 
 
-# Event Handlers ##############################################################
-key_pressed = (target, sym) ->
-  Mousetile.Util.Log(sym)
-  if sym == Constants.KEYS.CTRL
-    Mousetile.Draggable.DefaultController.enableAll()
-
-key_released = (target, sym) ->
-  if sym == Constants.KEYS.CTRL
-    Mousetile.Draggable.DefaultController.disableAll()
-
 # Main ########################################################################
 # Create a stage and run the demo
 main = ->
@@ -105,9 +95,6 @@ main = ->
 
   root = new Layouts.RootLayout(W, H)
   manager = new Layouts.LayoutController(root)
-  # bind key handling to enable/disable draggables
-  root.connect('key-up', key_pressed)
-  root.connect('key-down', key_released)
 
   tree = create_tree(select_alternate(false), 10)
   root.addChild(tree)
@@ -116,9 +103,11 @@ main = ->
 
   # toggle seams so we can drag parent windows
   manager.connect "drag-enabled", ->
-    SeamLib.DRAG_CONTROLLER.enableAll()
-  manager.connect "drag-enabled", ->
+    Util.Log("disabling seams")
     SeamLib.DRAG_CONTROLLER.disableAll()
+  manager.connect "drag-disabled", ->
+    Util.Log("enabling seams")
+    SeamLib.DRAG_CONTROLLER.enableAll()
 
   layout_and_show(tree)
 

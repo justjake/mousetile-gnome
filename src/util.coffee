@@ -11,6 +11,9 @@ is_gjs = -> # this function makes no sense: GSJ can't reach this before using GJ
 # Constants
 Constants = {
 
+  YES_STOP_EMITTING: true
+  NO_CONTINUE_EMITTING: false
+
   DEBUG: true
 
   # layout directions
@@ -343,12 +346,15 @@ class HasSignals extends Id
     for handler in connections
       if not handler.disconnected
         if Constants.DEBUG
+
           res = handler.callback.apply(null, call_args)
-          return undefined if res == false # stop emitting on false from handler
+          return Constants.YES_STOP_EMITTING if res == Constants.YES_STOP_EMITTING # stop emitting on false from handler
+
         else
+          # Event loop with error hanbdling
           try
             res = handler.callback.apply(null, call_args)
-            return undefined if res == false # stop emitting on false from handler
+            return Constants.YES_STOP_EMITTING if res == Constants.YES_STOP_EMITTING # stop emitting on false from handler
           catch err
             Util.Log("Error in callback for signal #{name} on #{this}")
             Util.Log(err.stack) if err.stack

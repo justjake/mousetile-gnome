@@ -43,7 +43,9 @@ class LayoutController extends Util.HasSignals
       Util.Log("Mouse down in window: #{from}")
       if @dragging_enabled
         @dragged_window = from
-        
+
+      return Constants.YES_STOP_EMITTING
+
     @win_mouse_up = (from, x, y) =>
       Util.Log("Mouse up in window: #{from}")
       if @dragged_window
@@ -57,18 +59,20 @@ class LayoutController extends Util.HasSignals
         from.parent.layoutRecursive()
         @dragged_window.parent.layoutRecursive()
         @dragged_window = null
+
+      return Constants.YES_STOP_EMITTING
       
     # Root event handlers #####################################################
     # enable/disable window events
     @root.connect 'key-down', (from, sym) =>
       if sym is WINDOW_DRAG_KEY
         @dragging_enabled = true
-        @emit("can-drag")
+        @emit("drag-enabled")
         
     @root.connect 'key-up', (from, sym) =>
       if sym is WINDOW_DRAG_KEY
         @dragging_enabled = false
-        @emit("drag-enabled")
+        @emit("drag-disabled")
       
     
   manage: (win) ->

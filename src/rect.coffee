@@ -174,8 +174,7 @@ class ClutterRect extends AbstractRect
 #      if to_emit == 'mouse-enter' or to_emit == 'mouse-leave'
 #        Util.Log("event #{to_emit} in #{obj}")
       [x, y] = event.get_coords()
-      obj.emit(to_emit, x, y)
-      return true
+      return obj.emit(to_emit, x, y)
 
   key_event = (obj, to_emit) ->
     (_, event) ->
