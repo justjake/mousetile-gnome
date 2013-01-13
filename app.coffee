@@ -64,7 +64,9 @@ select_alternate = (initial) ->
 
 
 # create a [Empty, [Empty, ...]] Tree
-next_color = Color.native_series(Color.piet(15))
+# next_color = Color.native_series(Color.piet(15))
+# next_color = Color.native_series(Color.school_portfolio(15))
+next_color = Color.native_series(Color.zenburn(15))
 
 create_tree = (dir_selector, count) ->
   # base case: return a plain container

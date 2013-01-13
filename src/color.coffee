@@ -7,6 +7,18 @@
 Clutter = imports.gi.Clutter
 Util = imports.Mousetile.util
 
+
+shuffle = (arr) ->
+  out = []
+  while arr.length
+    idx = Math.min(Math.floor(Math.random() * arr.length), arr.length - 1)
+    out.push(
+      arr.splice(idx, 1)[0]
+    )
+  out
+
+
+
 # Number utils
 bound0 = (x, max) ->
   Math.min(Math.max(x, 0), max)
@@ -20,6 +32,7 @@ interpolate = {
     distance = end - begin
     begin + distance * ratio
 }
+
 
 hash_to_string = (hash) ->
   res = "{"
@@ -46,6 +59,11 @@ hsv = (h, s, v) ->
   return res
 
 
+parse_hex = (hex) ->
+  r = parseInt(hex[1..2], 16)
+  g = parseInt(hex[3..4], 16)
+  b = parseInt(hex[5..6], 16)
+  rgba(r, b, b)
 
 # See http://bgrins.github.com/TinyColor/docs/tinycolor.html
 hsv_to_rgba = (hsv) ->
@@ -160,9 +178,74 @@ piet = (steps) ->
 
   return get_next
 
+zenburn = (steps) ->
+  # colors from zenburn.vim
+  # https://github.com/jnurmine/Zenburn/blob/master/colors/zenburn.vim
+  hex = [
+    "#3f3f3f"
+    "#dcdccc"
+    #  black + red
+    "#1E2320"
+    "#705050"
+    #  green + yellow
+    "#60b48a"
+    "#dfaf8f"
+    #  blue + purple
+    "#506070"
+    "#dc8cc3"
+    #  cyan + white
+    "#8cd0d3"
+    "#dcdccc"
+    #  bright-black + bright-red
+    "#709080"
+    "#dca3a3"
+    #  bright-green + bright-yellow
+    "#c3bf9f"
+    "#f0dfaf"
+    #  bright-blue + bright-purple
+    "#94bff3"
+    "#ec93d3"
+    #  bright-cyan + bright-white
+    "#93e0e3"
+    "#ffffff"
+  ]
+  colors = [
+    { r: 223, g: 143, b: 143, a: 255, }
+    { r: 140, g: 211, b: 211, a: 255, }
+    { r: 195, g: 159, b: 159, a: 255, }
+    { r: 112, g: 128, b: 128, a: 255, }
+    { r: 63, g: 63, b: 63, a: 255, }
+    { r: 255, g: 255, b: 255, a: 255, }
+    { r: 220, g: 204, b: 204, a: 255, }
+    { r: 240, g: 175, b: 175, a: 255, }
+    { r: 96, g: 138, b: 138, a: 255, }
+    { r: 147, g: 227, b: 227, a: 255, }
+    { r: 148, g: 243, b: 243, a: 255, }
+    { r: 80, g: 112, b: 112, a: 255, }
+    { r: 112, g: 80, b: 80, a: 255, }
+    { r: 220, g: 204, b: 204, a: 255, }
+    { r: 236, g: 211, b: 211, a: 255, }
+    { r: 220, g: 163, b: 163, a: 255, }
+    { r: 30, g: 32, b: 32, a: 255, }
+    { r: 220, g: 195, b: 195, a: 255, }
+  ]
+
+  # colors = shuffle(hex.map(parse_hex))
+
+#  color_js_string = "hex = [\n"
+#  for c in colors
+#    color_js_string += "  #{hash_to_string(c)}\n"
+#  Util.Log(color_js_string + ']')
+
+  # standard incrementor guy
+  calls = 0
+  get_next = ->
+    colors[calls++ % colors.length]
+
 native_series = (fn) ->
   ->
     color = fn()
-    rgb = hsv_to_rgba(color)
-    to_native(rgb)
+    # convert to RGB as needed
+    color = hsv_to_rgba(color) if color.h?
+    to_native(color)
 
