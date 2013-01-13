@@ -230,6 +230,8 @@ class ClutterRect extends AbstractRect
   constructor: (width = 0, height = 0) ->
     @native = new Clutter.Actor()
     @native.set_reactive(true)
+    # equivalent to overflow: hidden;
+    @native.set_clip_to_allocation(true)
 
     # Event Transformations ###################################################
     # mouse-enter

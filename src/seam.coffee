@@ -48,7 +48,7 @@ class ClutterSeam extends RectLib.ClutterRect
     super(0,0)
     @_non_native_init(container_parent, first_index)
     @native.set_background_color(Util.Constants.SEAM_COLOR)
-    @native.set_reactive(true)
+    @native.set_clip_to_allocation(false)
 
     @native.connect 'button-press-event', =>
       Util.Log('derp real seam was clicked')

@@ -35,6 +35,8 @@ SeamLib = imports.Mousetile.seam
 Clutter = imports.gi.Clutter
 Mousetile = imports.Mousetile.Mousetile
 
+Color = imports.Mousetile.color
+
 # Window Manager Libraries ####################################################
 Layouts = imports.Mousetile.manager.layout
 AssistantLib = imports.Mousetile.manager.assistant
@@ -62,15 +64,20 @@ select_alternate = (initial) ->
 
 
 # create a [Empty, [Empty, ...]] Tree
+next_color = Color.native_series(Color.piet(15))
+
 create_tree = (dir_selector, count) ->
   # base case: return a plain container
   if count == 0
-    return new C(W, H)
+    base = new C(W, H)
+    base.setColor(next_color())
+    return base
 
   # reverse the direction
   root = new C(W, H, dir_selector())
 
   empty_child = new C(W, H)
+  empty_child.setColor(next_color())
 
   # sub-tree
   full_child = create_tree(dir_selector, count - 1)
