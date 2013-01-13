@@ -14,8 +14,12 @@ Container = ContainerLib.Container
 
 # swap two regions
 swap = (from, to) ->
+
   from_parent = from.parent
   to_parent = to.parent
+  # Sanity check: do not swap parents with children
+  if to.isAncestor(from) or from.isAncestor(to)
+    throw new Error("Swap failed: cannot swap parent with child")
 
   from_idx = from_parent.managed_windows.indexOf(from)
   to_idx = to_parent.managed_windows.indexOf(to)
@@ -32,6 +36,36 @@ swap = (from, to) ->
   from_parent.managed_windows[from_idx] = to
 
   from.needs_layout = to.needs_layout = true
+
+# destroy a region by merging all of its children into the parent
+#   if the region has the same format as its parent
+mergeIntoParent = (region) ->
+  parent = region.parent
+
+  # sanity check
+  if not parent
+    Util.Log("Tried to merge #{region} into #{parent} but failed: parent was falsy")
+  else if parent.format != region.format
+    Util.Log("Tried to merge #{region} into #{parent} but failed: format mismatch")
+
+
+  # remove the region from its parent, and capture its former index
+  idx = parent.removeWindow(region)
+
+
+  # transform the region's children so they all fit into the same
+  #   space as the region, then add them to the parent in order
+  c_num = 0
+  for c in region.managed_windows
+    c.needs_layout = true
+    c.ratio *= region.ratio
+
+    parent.addWindowAtIndex(idx + c_num)
+
+    c_num += 1
+
+
+
 
 class Region extends Container
     # Constants
@@ -89,7 +123,6 @@ class Region extends Container
         op_region = new Region(5, 5, not @format, @spacing)
         idx = @managed_windows.length + idx if idx < 0
         existant_window = @managed_windows[idx]
-
 
         # replace window with new region
         @replaceAtIndex(op_region, idx)

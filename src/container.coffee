@@ -57,6 +57,15 @@ class Container extends Rect
         @native.className += " horiz" if @format
         @layout_needed = false
 
+    # let us know layout format
+    toString: ->
+      fmt = "Horizontal"
+      if @format is Constants.VERTICAL
+        fmt = "Vertical"
+
+      fmt + super()
+
+
     # given the number of children we have
     # and our spacing, how many pixels are in
     # our layout space?
@@ -65,9 +74,10 @@ class Container extends Rect
     # Spacing is only used *between* children
     spaceAvailible: ->
         if @format is VERTICAL
-            @getHeight() - (@managed_windows.length - 1) * @spacing
+            res = @getHeight() - (@managed_windows.length - 1) * @spacing
         else
-            @getWidth() - (@managed_windows.length - 1) * @spacing
+            res = @getWidth() - (@managed_windows.length - 1) * @spacing
+        res
 
     # Get a child's ratio
     ratioOf: (child) ->
@@ -124,6 +134,7 @@ class Container extends Rect
 
         space_availible = @spaceAvailible()
         space_consumed = 0
+        final = null
         # lay out items
         for c in @managed_windows
             # size child
@@ -146,14 +157,22 @@ class Container extends Rect
             # consume space
             space_consumed += size + @spacing
 
+            final = c
+
+        # make sure all the space is filled by adding 1px at a time
+        # if we have any space left over
+        if final
+          while space_availible > space_consumed
+            size = get(final, dim)
+            set(final, dim, size + 1)
+            space_consumed += 1
+
         # lay out seams
         @layoutSeams()
 
 
-    each: (fn) ->
-      fn.call(this)
-      for w in @managed_windows
-        w.each(fn)
+    eachWindow: (fn) ->
+      Util.traverse(this, ((w) -> w.managed_windows), fn)
 
     # lay out this item, then lay out child items that need it
     layoutRecursive: (layout_all = false) ->
@@ -174,7 +193,7 @@ class Container extends Rect
         idx = @managed_windows.indexOf(win)
         if idx > -1
             @managed_windows.splice(@managed_windows.indexOf(win), 1)
-        win
+        idx
 
 
     # low-level
@@ -247,6 +266,9 @@ class Container extends Rect
             set(s, p.ord, get(after, p.ord) + get(after, p.dim))
             set(s, p.off_ord, 0)
 
+            # seams are always in front of everything
+            @setAboveSibling(s)
+
             # win.
 
 
@@ -261,5 +283,16 @@ class Container extends Rect
         else
             @layoutRecursive()
 
+
+allWindows= (tree) ->
+  res = []
+  tree.eachWindow (w) ->
+    res.push(w)
+
+  return res
+
 # export
-this.Container = Container
+exports = {}
+exports.Container = Container
+exports.allWindows = allWindows
+

@@ -35,11 +35,15 @@ class AbstractRect extends Util.HasSignals
 
     @setColor(Util.random_color(255))
 
+
   # Child Management
-  # TODO: no re-adding children
   addChild: (rect) ->
     if rect.parent == this
       return # we already are in this struct
+
+    # sanity check: disallow adding parents to descendends
+    if @isAncestor(rect)
+      throw new Error("Cannot add parent #{rect} as child of its descendent #{this}")
 
     # remove from previous location
     if rect.parent
@@ -47,6 +51,7 @@ class AbstractRect extends Util.HasSignals
 
     rect.setParent(this)
     @children.push(rect)
+    @emitAndBubble('child-added', rect)
 
 
   removeChild: (rect) ->
@@ -58,6 +63,18 @@ class AbstractRect extends Util.HasSignals
       # throw new Error("InvalidRemoval: #{this} has no child #{rect}")
       Util.Log("InvalidRemoval: #{this} has no child #{rect}")
     return rect # helpful
+
+  eachChild: (fn) ->
+    Util.traverse(this, ((rect) -> rect.children), fn)
+
+  # Is rect an ancenstor of this object?
+  isAncestor: (rect) ->
+    parent = this.parent
+    while parent
+      if parent == rect
+        return true
+      parent = parent.parent
+    false
 
 
   # Style
@@ -174,7 +191,10 @@ class ClutterRect extends AbstractRect
 #      if to_emit == 'mouse-enter' or to_emit == 'mouse-leave'
 #        Util.Log("event #{to_emit} in #{obj}")
       [x, y] = event.get_coords()
-      return obj.emit(to_emit, x, y)
+      res = obj.emit(to_emit, x, y)
+      if res == Constants.YES_STOP_EMITTING or res == Constants.DO_NOT_BUBBLE
+        return true
+      res
 
   key_event = (obj, to_emit) ->
     (_, event) ->
@@ -198,6 +218,9 @@ class ClutterRect extends AbstractRect
     # key buttons
     'key-down'
     'key-up'
+
+    # tree structure
+    'child-added'
   ]
 
   constructor: (width = 0, height = 0) ->
@@ -230,6 +253,10 @@ class ClutterRect extends AbstractRect
   removeChild: (rect) ->
     @native.remove_child(rect.native)
     super(rect)
+
+  setAboveSibling: (to_raise, sibling = null) ->
+      @native.set_child_above_sibling(to_raise.native, sibling)
+
 
 
   setColor: (c) ->
@@ -281,5 +308,23 @@ center = (big, small) ->
 
   return [x, y]
 
+# translate the x,y pair from the child's coordinate system to the parent's coordinate system
+parent_coord = (child, x, y) ->
+  return [child.getX() + x, child.getY() + y]
+
+deparent_coord = (child, x, y) ->
+  return [x - child.getX(), y - child.getY()]
+
+
+# get all the children of a rect (including itself)
+is_child_of = (rect) ->
+  rect.eachChild (r) ->
+    res.push(r)
+
+  return res
+
 exports = {}
 exports.Rect = Rect
+exports.center = center
+exports.parent_coord = parent_coord
+exports.deparent_coord = deparent_coord

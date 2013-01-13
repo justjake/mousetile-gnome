@@ -76,16 +76,10 @@ create_tree = (dir_selector, count) ->
 
 
 layout_and_show = (tree) ->
-  tree.each ->
+  tree.eachWindow (win) ->
     # @native.show()
-    @layout()
+    win.layout()
 
-all_children = (tree) ->
-  res = []
-  tree.each ->
-    res.push(this)
-
-  return res
 
 
 # Main ########################################################################
@@ -98,8 +92,7 @@ main = ->
 
   tree = create_tree(select_alternate(false), 10)
   root.addChild(tree)
-  for win in all_children(tree)
-    manager.manage(win)
+  manager.manage(tree)
 
   # toggle seams so we can drag parent windows
   manager.connect "drag-enabled", ->

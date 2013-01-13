@@ -76,25 +76,25 @@ class AbstractDragShadow extends Rect
   constructor: (to_clone) ->
     # Clone target position
     super(to_clone.getWidth(), to_clone.getHeight())
-    @setX(to_clone.getX())
-    @setY(to_clone.getY())
 
-    to_clone.parent.addChild(this) if to_clone.parent
-    to_clone.connect 'parent-changed', (_, new_parent) =>
-      Util.Log("#{to_clone.parent}, #{new_parent}, #{@parent}")
-      new_parent.addChild(this)
+    to_clone.addChild(this)
 
     Util.runAlso('setWidth', to_clone, this)
     Util.runAlso('setHeight', to_clone, this)
 
-    Util.runAlso('setX', to_clone, this)
-    Util.runAlso('setY', to_clone, this)
-
+    # this object has instance methods with the same name as events.
+    # there is no magic here - we have to hook up the methods as usual.
+    # I think this makes sense -- we still use the events system, but subclasses
+    # can easily override the behavior
     @connect 'mouse-down', (_, x, y) =>
-      @mouseDown(x, y)
+      @mouseDown(
+        x, y
+      )
 
     @connect 'mouse-up', (_, x, y) =>
-      @mouseUp(x, y)
+      @mouseUp(
+        x, y
+      )
 
     @connect 'mouse-move', (_, x, y) =>
       @mouseMove(x, y)
@@ -115,10 +115,12 @@ class AbstractDragShadow extends Rect
     @constraints.push(c)
 
   applyConstrains: (x, y) ->
-    coords = [x, y]
+    # transform the local x, y (which is WITHIN the object we marked as draggable)
+    # to the coordinate system used by the object-to-be-dragged
+    coords = RectLib.parent_coord(@parent, x, y)
     for c in @constraints
       coords = c.apply(this, coords)
-    return coords
+    return RectLib.deparent_coord(@parent, coords...)
 
   # Generic mouse handling functions
   # params should be mouse x and y
@@ -130,7 +132,9 @@ class AbstractDragShadow extends Rect
       @drag_prev_coords = [x, y]
 
       # event
-      @emit('drag-start', x, y)
+      @emit('drag-start', RectLib.parent_coord(@parent, @getX(), @getY())...)
+
+      return Constants.YES_STOP_EMITTING
 
   mouseMove: (x, y) ->
     if @mouse_is_down
@@ -148,11 +152,10 @@ class AbstractDragShadow extends Rect
       @drag_prev_coords[1] = y if new_y == desired_y
 
       # event
-      @emit('drag-motion', new_x, new_y)
+      @emit('drag-motion', RectLib.parent_coord(@parent, new_x, new_y)...)
 
       [new_x, new_y]
-    else
-      false
+      return Constants.YES_STOP_EMITTING
 
   mouseUp: (x, y) ->
     if @ungrabMouse?
@@ -162,7 +165,15 @@ class AbstractDragShadow extends Rect
       @mouse_is_down = false
       @drag_start = null
 
-      @emit('drag-end', x, y)
+      # events are emitted in the draggable object's coordinate space
+      # instead of its nested-child space
+      @emit('drag-end', RectLib.parent_coord(@parent, @getX(), @getY())...)
+
+      # re-center shadow
+      @setX 0
+      @setY 0
+
+      return Constants.YES_STOP_EMITTING
 
 class ClutterDragShadow extends AbstractDragShadow
   constructor: (to_clone) ->
@@ -171,25 +182,6 @@ class ClutterDragShadow extends AbstractDragShadow
 
     # respond to events
     @native.set_reactive(true)
-
-    # reorder so this is on top
-    to_clone.connect 'parent-changed', (_, new_parent) =>
-      Util.Log("#{to_clone.parent}, #{new_parent}, #{@parent}")
-      # if new_parent
-      new_parent.native.set_child_above_sibling(@native, to_clone.native)
-
-    # bind event signals
-#    @native.connect 'button-press-event', (n, event) =>
-#      [x, y] = event.get_coords()
-#      @mouseDown(x, y)
-#
-#    @native.connect 'motion-event', (n, event) =>
-#      [x, y] = event.get_coords()
-#      @mouseMove(x, y)
-#
-#    @native.connect 'button-release-event', (n, event) =>
-#      [x, y] = event.get_coords()
-#      @mouseUp(x, y)
 
   grabMouse: ->
     Clutter.grab_pointer(@native)

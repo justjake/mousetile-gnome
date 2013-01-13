@@ -11,8 +11,13 @@ is_gjs = -> # this function makes no sense: GSJ can't reach this before using GJ
 # Constants
 Constants = {
 
+  # return from events
+  # stop event handlers for this event IMMEDIATLY
   YES_STOP_EMITTING: true
+  # carry on
   NO_CONTINUE_EMITTING: false
+  # Finish current event handlers on this object, but do not bubble to parent
+  DO_NOT_BUBBLE: 100
 
   DEBUG: true
 
@@ -184,6 +189,15 @@ proxy = (local, remote, methods...) ->
   for method in methods
     local[method] = -> remote[method].apply(remote, arguments)
 
+# Tree tools ##################################################################
+# run fn on all items in tree
+# get_next_items will be called on tree
+  # it should return an array of items to recursively traverse
+traverse = (tree, get_next_items, fn) ->
+  fn(tree)
+  items = get_next_items(tree)
+  for i in items
+    traverse(i, get_next_items, fn)
 
 # Sanity checks ###############################################################
 
@@ -210,7 +224,7 @@ class Id
     "#{@constructor.name}<#{@_id}>"
 
 class Set extends Id
-  constructor: (arr) ->
+  constructor: (arr = []) ->
     super()
     @_set = {}
 
@@ -275,10 +289,10 @@ class HasSignals extends Id
     # add signal internals only if someone is listening
     if not @_signals?
       @_signals = {
-      connections: []
-      nextId: 1
-      # TODO: faster then gjs-1.0's simple signals array?
-      # more hashmaps, maybe?
+        connections: []
+        nextId: 1
+        # TODO: faster then gjs-1.0's simple signals array?
+        # more hashmaps, maybe?
       }
 
     id = @_signals.nextId
@@ -341,6 +355,10 @@ class HasSignals extends Id
     # emitting
     connections = (c for c in @_signals.connections when c.name == name)
 
+    #
+    if connections.length == 0
+      return
+
     call_args = [this].concat(args)
 
     for handler in connections
@@ -358,6 +376,16 @@ class HasSignals extends Id
           catch err
             Util.Log("Error in callback for signal #{name} on #{this}")
             Util.Log(err.stack) if err.stack
+
+    return res
+
+  # emit this event, then emit the same event off of the parent if it goes unhandled
+  emitAndBubble: (name, args...) ->
+    res = @emit(name, args...)
+
+    if @parent and (res != Constants.YES_STOP_EMITTING or res != Constants.DO_NOT_BUBBLE)
+      @parent.emitAndBubble(name, args...)
+
 
 
 
@@ -384,4 +412,5 @@ exports = {
   runAlso: runAlso
   bindRemoteFunction: bindRemoteFunction
   assert: assert
+  traverse: traverse
 }

@@ -37,6 +37,9 @@ class LayoutController extends Util.HasSignals
     @dragging_enabled = false
     @dragged_window = null
     @windows = []
+
+    # set so we can discard calls to `manage` for windows we already own
+    @window_set = new Util.Set()
     
     # define event handlers
     @win_mouse_down = (from, x, y) =>
@@ -45,6 +48,9 @@ class LayoutController extends Util.HasSignals
         @dragged_window = from
 
       return Constants.YES_STOP_EMITTING
+
+    # Window Event Handlers ###################################################
+    # this is where the fancy tiling assistant should be shown and stuff!!!!
 
     @win_mouse_up = (from, x, y) =>
       Util.Log("Mouse up in window: #{from}")
@@ -60,7 +66,7 @@ class LayoutController extends Util.HasSignals
         @dragged_window.parent.layoutRecursive()
         @dragged_window = null
 
-      return Constants.YES_STOP_EMITTING
+      return Constants.DO_NOT_BUBBLE
       
     # Root event handlers #####################################################
     # enable/disable window events
@@ -76,7 +82,14 @@ class LayoutController extends Util.HasSignals
       
     
   manage: (win) ->
-    Util.Log "Managed #{win}"
-    @windows.push(win)
-    win.connect 'mouse-down', @win_mouse_down
-    win.connect 'mouse-up', @win_mouse_up
+    if not @window_set.contains(win)
+
+      # manage children
+      if win.managed_windows
+        for w in win.managed_windows
+          @manage(w)
+
+      Util.Log "Managed #{win}"
+      @windows.push(win)
+      win.connect 'mouse-down', @win_mouse_down
+      win.connect 'mouse-up', @win_mouse_up

@@ -24,7 +24,7 @@ _constrain_to_direction = (dir = Constants.HORIZONTAL) ->
     else
       return [0, y]
 
-# TODO: constrain by default to just the space between the left and right rectabgles
+# TODO: constrain by default to just the space between the left and right rectangles
 _constrain_to_rect = (rect) ->
   (x, y) ->
     max_x = rect.getWidth() - Constants.SPACING
@@ -58,37 +58,51 @@ class ClutterSeam extends RectLib.ClutterRect
 ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
   parent.addChild(this)
   @index = idx
-  @drag = DRAG_CONTROLLER.makeDraggable(this, [_constrain_to_direction(parent.format)
-                                               _constrain_to_rect(parent)])
+  @drag = DRAG_CONTROLLER.makeDraggable(this,
+    [_constrain_to_direction(parent.format), _constrain_to_rect(parent)])
   # RESIZE FUNCTION ###########################################################
   # event handler for drag ending
-  @drag.connect 'drag-end', (shadow) =>
+  @drag.connect 'drag-end', (shadow, x, y) =>
+    # x,y pair is in the parent coordinate space already
 
-    [before_new_ratio, after_new_ratio] = @parent.ratioAround(shadow.getX(), shadow.getY())
+    Util.Log("shadow_loc = #{x} #{y}")
 
+    # set the seam's new coordinates
+    @setX x
+    @setY y
+
+
+    # how much ratio space will be on each side of the seam's NEW location
+    [before_new_ratio, after_new_ratio] = @parent.ratioAround(x, y)
+
+    # accumulate the total ratio before the CURRENT seam location
     before_prev_ratio = 0
     for rect in @parent.managed_windows[0..@index]
       before_prev_ratio += @parent.ratioOf(rect)
     after_prev_ratio = 1 - before_prev_ratio
 
+    # calculate ratio differences on either side of the seam -- how much
+    #   ratio delta do we have?
     before_diff = before_new_ratio - before_prev_ratio
     after_diff = after_new_ratio - after_prev_ratio
+
+    # TODO: behave respobsibly if there are more than 2 children in a region
 
     before_rect = @parent.managed_windows[@index]
     after_rect = @parent.managed_windows[@index + 1]
 
-    @setX shadow.getX()
-    @setY shadow.getY()
-
-    # TODO: behave respobsibly if there are more than 2 children in a region
+    # these rectangles are being resized, so kindly inform them...
     before_rect.needs_layout = after_rect.needs_layout = true
+
+    # set new ratios
+    # TODO adjust for more than 2 rectangles
     before_rect.ratio += before_diff
     after_rect.ratio += after_diff
 
     Util.Log("before.ratio = #{before_rect.ratio}, after.ratio = #{after_rect.ratio}, sum = #{before_rect.ratio + after_rect.ratio}")
 
+    # lay out everything
     @parent.layoutRecursive()
-
 
 # Write to global scope
 if Util.is_gjs()
