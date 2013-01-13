@@ -43,8 +43,8 @@ AssistantLib = imports.Mousetile.manager.assistant
 # Constants ###################################################################
 Util = Mousetile.Util
 Constants = Mousetile.Util.Constants
-W = 1200
-H = 800
+W = 2000
+H = W * Constants.GOLDEN
 C = Mousetile.Region
 
 class C extends Mousetile.Region
@@ -85,6 +85,8 @@ create_tree = (dir_selector, count) ->
   # add children
   root.addLast(empty_child)
   root.addLast(full_child)
+  empty_child.ratio = 1 - Constants.GOLDEN
+  full_child.ratio = 1 - empty_child.ratio
 
   return root
 
@@ -104,7 +106,7 @@ main = ->
   root = new Layouts.RootLayout(W, H)
   manager = new Layouts.LayoutController(root)
 
-  tree = create_tree(select_alternate(false), 10)
+  tree = create_tree(select_alternate(true), 10)
   root.addChild(tree)
   manager.manage(tree)
 
@@ -119,11 +121,11 @@ main = ->
   layout_and_show(tree)
 
   # try and use assistant
-  ast = new AssistantLib.Assistant()
-  root.addChild(ast)
-  [x, y] = RectLib.center(root, ast)
-  ast.setX Math.floor x
-  ast.setY Math.floor y
+#  ast = new AssistantLib.Assistant()
+#  root.addChild(ast)
+#  [x, y] = RectLib.center(root, ast)
+#  ast.setX Math.floor x
+#  ast.setY Math.floor y
 
   # Clutter setup
 

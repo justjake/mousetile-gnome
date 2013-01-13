@@ -13,6 +13,7 @@ Constants = {
 
   # for floating-point comparrison
   EPSILON: 0.000001
+  GOLDEN: 1 / 1.618
 
   # return from events
   # stop event handlers for this event IMMEDIATLY
