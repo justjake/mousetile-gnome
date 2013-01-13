@@ -44,6 +44,13 @@ Constants = Mousetile.Util.Constants
 W = 1200
 H = 800
 C = Mousetile.Region
+
+class C extends Mousetile.Region
+  @constructor: ->
+    super()
+    @connect 'window-added', =>
+      @setColor()
+
 Image = Mousetile.Image
 
 # Alternate between `true` and `false`

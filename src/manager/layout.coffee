@@ -43,7 +43,10 @@ class LayoutController extends Util.HasSignals
     
     # define event handlers
     @win_mouse_down = (from, x, y) =>
-      Util.Log("Mouse down in window: #{from}")
+
+      # print window info
+      Util.Log("Win: #{from.inspect()}, Parent: #{from.parent.inspect()}")
+
       if @dragging_enabled
         @dragged_window = from
 
@@ -53,7 +56,6 @@ class LayoutController extends Util.HasSignals
     # this is where the fancy tiling assistant should be shown and stuff!!!!
 
     @win_mouse_up = (from, x, y) =>
-      Util.Log("Mouse up in window: #{from}")
       if @dragged_window
         Util.Log("going to swap #{from} with #{@dragged_window}")
         # just swap windows for now
@@ -67,6 +69,11 @@ class LayoutController extends Util.HasSignals
         @dragged_window = null
 
       return Constants.DO_NOT_BUBBLE
+
+    @win_child_added = (from, child) =>
+      if child.managed_windows
+        @manage(child) if child.managed_windows
+        from.setColor(Constants.RED_COLOR)
       
     # Root event handlers #####################################################
     # enable/disable window events
@@ -93,3 +100,4 @@ class LayoutController extends Util.HasSignals
       @windows.push(win)
       win.connect 'mouse-down', @win_mouse_down
       win.connect 'mouse-up', @win_mouse_up
+      win.connect 'child-added', @win_child_added

@@ -36,6 +36,10 @@ class AbstractRect extends Util.HasSignals
     @setColor(Util.random_color(255))
 
 
+  # like toString, but with more info
+  inspect: ->
+    @toString() + "at [#{@getX()}, #{@getY()}] size [#{@getWidth()}, #{@getHeight()}]"
+
   # Child Management
   addChild: (rect) ->
     if rect.parent == this

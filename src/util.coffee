@@ -11,6 +11,9 @@ is_gjs = -> # this function makes no sense: GSJ can't reach this before using GJ
 # Constants
 Constants = {
 
+  # for floating-point comparrison
+  EPSILON: 0.000001
+
   # return from events
   # stop event handlers for this event IMMEDIATLY
   YES_STOP_EMITTING: true
@@ -40,9 +43,17 @@ Constants = {
     ALT: 65513
   }
 }
+type = (obj) ->
+  obj.constructor
 
+# Number Tools ################################################################
 int = (n) -> Math.floor(n)
 
+# comparison with epsilon
+almost_equals = (a, b, epsilon = Constants.EPSILON) ->
+  Math.abs(a - b) < epsilon
+
+# Color stuff #################################################################
 
 random_color = (alpha = 15) ->
   new Clutter.Color {
@@ -97,6 +108,12 @@ if is_gjs()
     green: 0
     blue: 0
     alpha: 0
+  }
+  Constants.RED_COLOR = new Clutter.Color {
+    red: 255
+    green: 0
+    blue: 0
+    alpha: 255
   }
 else
   Constants.MAIN_COLOR = "rgba(0, 0, 255, #{15 / 255})"
@@ -208,6 +225,10 @@ assert = (desc, fn_or_condition) ->
     res = fn_or_condition
   if res is false
     Util.Log("Failed assertion '#{desc}': #{fn_or_condition.toString()}")
+
+
+
+
 
 
 # Basic Classes ###############################################################
@@ -408,6 +429,8 @@ exports = {
   HasSignals: HasSignals
 
   # Functions
+  type: type
+  almost_equals: almost_equals
   is_gjs: is_gjs
   runAlso: runAlso
   bindRemoteFunction: bindRemoteFunction

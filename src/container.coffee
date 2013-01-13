@@ -115,11 +115,35 @@ class Container extends Rect
         return params
 
 
+    # total ratio should be 1.
+    # if not, scale everything so that it is 1.
+    _normalizeLayout: ->
+      target = 1
+
+      total = @managed_windows.reduce ((prev, cur) => prev + cur.ratio), 0
+
+      transform = target / total
+
+      Util.Log("Normalizing layout from #{total} to #{target} with trasform factor #{transform}")
+
+      for w in @managed_windows
+        w.ratio *= transform
+
+
     # lay out all children based on our HOR/VERT
     # and dimensions
     layout: ->
         # we will get layout, so unflag us for future layout runs for now
         @needs_layout = false
+
+        if @managed_windows.length == 0
+          return
+
+        # sanity check: all child ratios should add up to one
+        total = @managed_windows.reduce ((prev, cur) => prev + cur.ratio), 0
+        if not Util.almost_equals(total, 1)
+          @_normalizeLayout()
+
         # what set of properties should we use?
         if @format is VERTICAL
             ord = 'Y'
@@ -185,6 +209,7 @@ class Container extends Rect
     addWindow: (win) ->
         @addChild(win)
         @managed_windows.push(win)
+        @emit('window-added', win)
 
 
     # remove from managed windows on removing child, and cull seams
@@ -204,6 +229,7 @@ class Container extends Rect
         else
             idx = @managed_windows.length + idx if idx < 0
             @managed_windows.splice(idx + 1, 0, win)
+        @emit('window-added', win)
 
     # replace managed window at index
     replaceAtIndex: (win, idx) ->
@@ -217,6 +243,7 @@ class Container extends Rect
         # replace in managed window queue with new window
         @managed_windows[idx] = win
         win.ratio = old_win.ratio
+        @emit('window-added', win)
 
 
 
@@ -284,7 +311,7 @@ class Container extends Rect
             @layoutRecursive()
 
 
-allWindows= (tree) ->
+allWindows = (tree) ->
   res = []
   tree.eachWindow (w) ->
     res.push(w)
