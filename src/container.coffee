@@ -39,7 +39,7 @@ class Container extends Rect
 
     # size ratios to fixed pixel space
     fix = (rat, total) -> 
-        intended = Math.floor(total * rat)
+        intended = Math.ceil(total * rat)
         if intended < 0
             return 0
         return intended
