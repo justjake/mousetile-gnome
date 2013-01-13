@@ -26,14 +26,19 @@ swap = (from, to) ->
 
   Util.Log("moving cell #{from_idx} in #{from_parent} to cell #{to_idx} in #{to_parent}")
 
+  # low level - swap object parents
   from_parent.removeChild(from)
   to_parent.removeChild(to)
 
   from_parent.addChild(to)
   to_parent.addChild(from)
 
+  # put objects in right order of new parent
   to_parent.managed_windows[to_idx] = from
   from_parent.managed_windows[from_idx] = to
+
+  # swap ratios
+  [from.ratio, to.ratio] = [to.ratio, from.ratio]
 
   from.needs_layout = to.needs_layout = true
 

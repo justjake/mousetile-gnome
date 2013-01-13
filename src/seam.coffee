@@ -65,8 +65,6 @@ ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
   @drag.connect 'drag-end', (shadow, x, y) =>
     # x,y pair is in the parent coordinate space already
 
-    Util.Log("shadow_loc = #{x} #{y}")
-
     # set the seam's new coordinates
     @setX x
     @setY y
