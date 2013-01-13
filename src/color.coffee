@@ -107,8 +107,7 @@ else
 # Color series ################################################################
 
 # from https://kuler.adobe.com/#themeID/2209535
-
-student_portfolio = (steps) ->
+tricolor = (steps) ->
   series_steps = Math.ceil(steps / 3)
 
   progression = (hue, stepNum) ->
@@ -135,6 +134,7 @@ student_portfolio = (steps) ->
 
   return get_next
 
+# Mondrial-like colors
 piet = (steps) ->
   series_steps = Math.ceil(steps / 7)
 
@@ -178,6 +178,7 @@ piet = (steps) ->
 
   return get_next
 
+# zenburn colors
 zenburn = (steps) ->
   # colors from zenburn.vim
   # https://github.com/jnurmine/Zenburn/blob/master/colors/zenburn.vim
@@ -241,6 +242,24 @@ zenburn = (steps) ->
   calls = 0
   get_next = ->
     colors[calls++ % colors.length]
+
+# dark colors
+dark = (series_steps) ->
+  dark = (hue, stepNum) ->
+    hsv(
+      hue,
+      interpolate.linear(0, 15, stepNum / series_steps),
+      interpolate.linear(20, 3, stepNum / series_steps)
+    )
+
+  progress = (hue, type) ->
+    step = 1
+    ->
+      type(hue, step++)
+
+  return progress(100, dark)
+
+
 
 native_series = (fn) ->
   ->

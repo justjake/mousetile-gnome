@@ -68,6 +68,18 @@ random_color = (alpha = 15) ->
 if is_gjs()
   # Add global colors for GJS
   Clutter = imports.gi.Clutter
+  Constants.BLACK_COLOR = new Clutter.Color {
+    red: 0
+    green: 0
+    blue: 0
+    alpha: 255
+  }
+  Constants.WHITE_COLOR = new Clutter.Color {
+    red: 255
+    green: 255
+    blue: 255
+    alpha: 255
+  }
   Constants.ROOT_COLOR = new Clutter.Color {
   red: int(255/2)
   green: int(255/2)
@@ -80,18 +92,19 @@ if is_gjs()
     blue: 255
     alpha: 15
   }
-  Constants.SEAM_COLOR = new Clutter.Color {
-    red:   0
-    green: 0
-    blue:  0
-    alpha: 255
-  }
+  Constants.SEAM_COLOR = Constants.WHITE_COLOR
   Constants.DRAG_COLOR = new Clutter.Color {
-    red: 255
-    green: 255
-    blue: 0
-    alpha: 50
+    red:   12
+    green: 122
+    blue:  247
+    alpha: int(.35 * 255)
   }
+#  Constants.DRAG_COLOR = new Clutter.Color {
+#    red: 0
+#    green:0
+#    blue: 0
+#    alpha: 50
+#  }
   Constants.BUTTON_DEFAULT_COLOR = new Clutter.Color {
     red: 0
     green:0
