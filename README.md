@@ -2,6 +2,15 @@
 
 ###### A tiling window manager inside Gnome Shell, for people who like using mice.
 
+Note that this is a learning project: I'm opting to rebuild the world
+when it seems interesting to me. I'm building Mousetile in a rather 
+abstract manner, and using many files and classes where perhaps a 
+data-structure driven approach would be better (given that this is
+indeed Javascript).
+
+I'm trying to teach myself why I would like to use statically-typed
+languages I guess.
+
 ## Goal
 
 A tiling window manager for mouse users. I'm really inspired by the pane management
