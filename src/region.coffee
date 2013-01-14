@@ -8,9 +8,10 @@
 #
 # ###
 
-#= require "container"
-ContainerLib = imports.Mousetile.container
-Container = ContainerLib.Container
+Constants    = imports.Mousetile.constants.exports
+ContainerLib = imports.Mousetile.container.exports
+Logger       = imports.Mousetile.logger.exports
+
 
 # swap two regions
 swap = (from, to) ->
@@ -24,7 +25,7 @@ swap = (from, to) ->
   from_idx = from_parent.managed_windows.indexOf(from)
   to_idx = to_parent.managed_windows.indexOf(to)
 
-  Util.Log("moving cell #{from_idx} in #{from_parent} to cell #{to_idx} in #{to_parent}")
+  Logger.Log("moving cell #{from_idx} in #{from_parent} to cell #{to_idx} in #{to_parent}")
 
   # low level - swap object parents
   from_parent.removeChild(from)
@@ -42,6 +43,8 @@ swap = (from, to) ->
 
   from.needs_layout = to.needs_layout = true
 
+
+
 # destroy a region by merging all of its children into the parent
 #   if the region has the same format as its parent
 mergeIntoParent = (region) ->
@@ -49,9 +52,9 @@ mergeIntoParent = (region) ->
 
   # sanity check
   if not parent
-    Util.Log("Tried to merge #{region} into #{parent} but failed: parent was falsy")
+    Logger.Log("Tried to merge #{region} into #{parent} but failed: parent was falsy")
   else if parent.format != region.format
-    Util.Log("Tried to merge #{region} into #{parent} but failed: format mismatch")
+    Logger.Log("Tried to merge #{region} into #{parent} but failed: format mismatch")
 
 
   # remove the region from its parent, and capture its former index
@@ -72,24 +75,11 @@ mergeIntoParent = (region) ->
 
 
 
-class Region extends Container
-    # Constants
-    VERTICAL = false
-    HORIZONTAL = true
+class Region extends ContainerLib.Container
 
     # when splitting / adding windows
-    BEFORE = true
-    AFTER  = false
-
-    mark_for_layout = (regs...) ->
-        for r in regs
-            r.needs_layout = true
-
-    get = (obj, name, params...) ->
-        obj["get#{name}"].apply(obj, params)
-    set = (obj, name, params...) ->
-        Util.log("setting #{name} on #{obj} to #{params}")
-        obj["set#{name}"].apply(obj, params)
+    BEFORE = Constants.BEFORE
+    AFTER  = Constants.AFTER
 
     # transform existing windows ratios to make room for new window
     # preservign thier scale to each other
@@ -134,10 +124,16 @@ class Region extends Container
         
         # set up new region
         op_region.transact ->
-            mark_for_layout(existant_window, new_win)
+            for win in [existant_window, new_win]
+              win.needs_layout = true
             @addNewWindowAtIndex(existant_window, 0)
             @addNewWindowAtIndex(new_win, 0, side_for_new)
 
 
-# export global
-this.Region = Region
+# Exports #####################################################################
+exports = {
+  swap: swap
+  mergeIntoParent: mergeIntoParent
+
+  Region: Region
+}

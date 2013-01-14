@@ -1,17 +1,18 @@
+
+IS_GJS = true # TODO: move to build system
+
 ####
 # Seams - goes in the empty space between container ports
 ####
 
-#=require "util"
-#=require "rect"
 
 
 # Local libraries
-Util = imports.Mousetile.util
-Constants = Util.Constants
-Draggable = imports.Mousetile.draggable
+Logger    = imports.Mousetile.logger.exports
+Constants = imports.Mousetile.constants.exports
+Draggable = imports.Mousetile.draggable.exports
 
-RectLib = imports.Mousetile.rect
+RectLib = imports.Mousetile.rect.exports
 Rect = RectLib.Rect
 
 DRAG_CONTROLLER = new Draggable.DraggableController()
@@ -35,6 +36,7 @@ _constrain_to_rect = (rect) ->
     y = Math.min(y, max_y)
     [x, y]
 
+
 class DomSeam extends RectLib.DomRect
   constructor: (container_parent, first_index = 0) ->
     super(0,0)
@@ -47,11 +49,11 @@ class ClutterSeam extends RectLib.ClutterRect
   constructor: (container_parent, first_index = 0) ->
     super(0,0)
     @_non_native_init(container_parent, first_index)
-    @native.set_background_color(Util.Constants.SEAM_COLOR)
+    @native.set_background_color(Constants.NativeColors.SEAM_COLOR)
     @native.set_clip_to_allocation(false)
 
     @native.connect 'button-press-event', =>
-      Util.Log('derp real seam was clicked')
+      Logger.Log('derp real seam was clicked')
 
 
 
@@ -97,13 +99,16 @@ ClutterSeam::_non_native_init = DomSeam::_non_native_init = (parent, idx) ->
     before_rect.ratio += before_diff
     after_rect.ratio += after_diff
 
-    Util.Log("before.ratio = #{before_rect.ratio}, after.ratio = #{after_rect.ratio}, sum = #{before_rect.ratio + after_rect.ratio}")
+    Logger.Log("before.ratio = #{before_rect.ratio}, after.ratio = #{after_rect.ratio}, sum = #{before_rect.ratio + after_rect.ratio}")
 
     # lay out everything
     @parent.layoutRecursive()
 
-# Write to global scope
-if Util.is_gjs()
-  Seam = ClutterSeam
+# Exports #####################################################################
+exports = {
+  DRAG_CONTROLLER: DRAG_CONTROLLER
+}
+if IS_GJS
+  exports.Seam = ClutterSeam
 else
-  Seam = DomSeam
+  exports.Seam = DomSeam

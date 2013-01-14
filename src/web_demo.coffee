@@ -1,3 +1,7 @@
+
+# ancient file from the webkit prototype
+# TODO: (distant future): port app.coffee to the web
+
 ####
 # Entry point
 ####

@@ -24,36 +24,30 @@ getCurrentFile = ->
 
 LIB = getCurrentFile().dirname
 imports.searchPath.unshift(LIB)
-imports.Mousetile.util.Constants.LOCATION = LIB
 
 # Libraries ###################################################################
-RectLib = imports.Mousetile.rect
-Region = imports.Mousetile.region
+Logger    = imports.Mousetile.logger.exports
+Constants = imports.Mousetile.constants.exports
 
-SeamLib = imports.Mousetile.seam
+SeamLib   = imports.Mousetile.seam.exports
+RegionLib  = imports.Mousetile.region.exports
+Color  = imports.Mousetile.color.exports
 
 Clutter = imports.gi.Clutter
-Mousetile = imports.Mousetile.Mousetile
-
-Color = imports.Mousetile.color
 
 # Window Manager Libraries ####################################################
 Layouts = imports.Mousetile.manager.layout
 AssistantLib = imports.Mousetile.manager.assistant
-# Constants ###################################################################
-Util = Mousetile.Util
-Constants = Mousetile.Util.Constants
+
+# App Constants ###############################################################
 W = 2000
 H = W * Constants.GOLDEN
-C = Mousetile.Region
 
-class C extends Mousetile.Region
-  @constructor: ->
-    super()
+class C extends RegionLib.Region
+  @constructor: (args...) ->
+    super(args...)
     @connect 'window-added', =>
-      @setColor()
-
-Image = Mousetile.Image
+      @setColor(Constants.NativeColors.RED)
 
 # Alternate between `true` and `false`
 select_alternate = (initial) ->
@@ -62,13 +56,12 @@ select_alternate = (initial) ->
     prev = ! prev
     return prev
 
-
-# create a [Empty, [Empty, ...]] Tree
 # next_color = Color.native_series(Color.piet(15))
 # next_color = Color.native_series(Color.tricolor(13))
-# next_color = Color.native_series(Color.zenburn(15))
-next_color = Color.native_series(Color.dark(13))
+next_color = Color.native_series(Color.zenburn(15))
+# next_color = Color.native_series(Color.dark(13))
 
+# create a [Empty, [Empty, ...]] Tree
 create_tree = (dir_selector, count) ->
   # base case: return a plain container
   if count == 0
@@ -115,10 +108,10 @@ main = ->
 
   # toggle seams so we can drag parent windows
   manager.connect "drag-enabled", ->
-    Util.Log("disabling seams")
+    Logger.Log("disabling seams")
     SeamLib.DRAG_CONTROLLER.disableAll()
   manager.connect "drag-disabled", ->
-    Util.Log("enabling seams")
+    Logger.Log("enabling seams")
     SeamLib.DRAG_CONTROLLER.enableAll()
 
   layout_and_show(tree)
@@ -144,8 +137,6 @@ main = ->
   stage.show()
   Clutter.main()
   stage.destroy()
-
-  Mousetile.Util.LogKeys(Clutter.keysyms)
 
 
 # CHOO CHOO DO IT

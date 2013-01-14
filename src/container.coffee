@@ -5,23 +5,20 @@
 # Splittable rect container
 ####
 
-#= require "util"
-#= require "rect"
-#= require "seam"
+Util      = imports.Mousetile.util.exports
+Logger    = imports.Mousetile.logger.exports
+Constants = imports.Mousetile.constants.exports
 
-Util = imports.Mousetile.util
-Constants = Util.Constants
-
-RectLib = imports.Mousetile.rect
+RectLib   = imports.Mousetile.rect.exports
 Rect = RectLib.Rect
 
-SeamLib = imports.Mousetile.seam
+SeamLib   = imports.Mousetile.seam.exports
 Seam = SeamLib.Seam
 
 class Container extends Rect
 
     # Constants
-    VERTICAL = Constants.VERTICAL
+    VERTICAL   = Constants.VERTICAL
     HORIZONTAL = Constants.HORIZONTAL
 
     # when splitting / adding windows
@@ -124,7 +121,7 @@ class Container extends Rect
 
       transform = target / total
 
-      Util.Log("Normalizing layout from #{total} to #{target} with trasform factor #{transform}")
+      Logger.Log("Normalizing layout from #{total} to #{target} with trasform factor #{transform}")
 
       for w in @managed_windows
         w.ratio *= transform
@@ -166,7 +163,7 @@ class Container extends Rect
             ratio = @ratioOf(c)
             size = fix(ratio, space_availible)
 
-            # Util.Log("layout ratio: #{ratio}, size: #{size}, spess: #{space_consumed}")
+            # Logger.Log("layout ratio: #{ratio}, size: #{size}, spess: #{space_consumed}")
             set(c, dim, size)
 
             ## other dimension

@@ -14,13 +14,11 @@ allows you to select your destination:
   swap the source and the destination
 ###
 
-Util = imports.Mousetile.util
-Constants = Util.Constants
-RectLib = imports.Mousetile.rect
-ImageLib = imports.Mousetile.image
+Constants = imports.Mousetile.constants.exports
+RectLib   = imports.Mousetile.rect.exports
+ImageLib  = imports.Mousetile.image.exports
 
 ASSET_PATH = 'assets'
-
 
 role_icon = (role) ->
   "#{ASSET_PATH}/#{role}.png"
@@ -64,7 +62,7 @@ class Assistant extends RectLib.Rect
     for role in buttons
       @addChild(this[role])
 
-    # @setColor(Util.Constants.NO_COLOR)
+    # @setColor(Constants.NativeColors.NO_COLOR)
 
     # lay out icons
     center_col_x = SPACING * 3 + icon_width * 2

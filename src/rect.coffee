@@ -14,12 +14,14 @@
 Clutter = imports.gi.Clutter
 
 # Libraries
-Util = imports.Mousetile.util
-Constants = Util.Constants
+Logger    = imports.Mousetile.logger.exports
+Classes   = imports.Mousetile.classes.exports
+Util      = imports.Mousetile.util.exports
+Constants = imports.Mousetile.constants.exports
 
 # Abstract class
-class AbstractRect extends Util.HasSignals
-  NO_PARENT = Util.Constants.NO_PARENT
+class AbstractRect extends Classes.HasSignals
+  NO_PARENT = Constants.NO_PARENT
 
   # Pre-mature signal adding. Does rect really need to emit?
   # signalsEmitted: ['resize', 'move']
@@ -33,8 +35,7 @@ class AbstractRect extends Util.HasSignals
     @setWidth(width)
     @setHeight(height)
 
-    @setColor(Util.random_color(255))
-
+    @setColor(Constants.NativeColors.RECT_COLOR)
 
   # like toString, but with more info
   inspect: ->
@@ -65,7 +66,7 @@ class AbstractRect extends Util.HasSignals
       rect.setParent(NO_PARENT)
     else
       # throw new Error("InvalidRemoval: #{this} has no child #{rect}")
-      Util.Log("InvalidRemoval: #{this} has no child #{rect}")
+      Logger.Log("InvalidRemoval: #{this} has no child #{rect}")
     return rect # helpful
 
   eachChild: (fn) ->
@@ -193,7 +194,7 @@ class ClutterRect extends AbstractRect
   mouse_event = (obj, to_emit) ->
     (_, event) ->
 #      if to_emit == 'mouse-enter' or to_emit == 'mouse-leave'
-#        Util.Log("event #{to_emit} in #{obj}")
+#        Logger.Log("event #{to_emit} in #{obj}")
       [x, y] = event.get_coords()
       res = obj.emit(to_emit, x, y)
       if res == Constants.YES_STOP_EMITTING or res == Constants.DO_NOT_BUBBLE
@@ -331,6 +332,8 @@ is_child_of = (rect) ->
 
 exports = {}
 exports.Rect = Rect
+exports.DomRect = DomRect
+exports.ClutterRect = ClutterRect
 exports.center = center
 exports.parent_coord = parent_coord
 exports.deparent_coord = deparent_coord

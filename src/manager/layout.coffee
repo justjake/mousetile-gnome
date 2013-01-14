@@ -1,20 +1,22 @@
 ###
-Layouts
-
-Base objects in the window manager.
-Abstracts away some root Clutter or DOM element that we'll add things to
-and bind basic event handling on for controllers
+  Layouts
+  -----------------------------------------------------------------------------
+  Base objects in the window manager.
+  Abstracts away some root Clutter or DOM element that we'll add things to
+  and bind basic event handling on for controllers
 ###
 
-Util = imports.Mousetile.util
-Constants = Util.Constants
-Rects = imports.Mousetile.rect
-Regions = imports.Mousetile.region
+Logger    = imports.Mousetile.logger.exports
+Util      = imports.Mousetile.util.exports
+Constants = imports.Mousetile.constants.exports
+Classes   = imports.Mousetile.classes.exports
+RectLib   = imports.Mousetile.rect.exports
+RegionLib = imports.Mousetile.region.exports
 
-class RootLayout extends Rects.Rect
+class RootLayout extends RectLib.Rect
   constructor: (w, h) ->
     super(w, h)
-    @setColor(Constants.ROOT_COLOR)
+    @setColor(Constants.NativeColors.ROOT_COLOR)
 
 ###
   LayoutController ------------------------------------------------------------
@@ -23,7 +25,7 @@ class RootLayout extends Rects.Rect
   and saving/restoring application layouts
 ###
 
-class LayoutController extends Util.HasSignals
+class LayoutController extends Classes.HasSignals
 
   WINDOW_DRAG_KEY = Constants.KEYS.CTRL
 
@@ -39,13 +41,13 @@ class LayoutController extends Util.HasSignals
     @windows = []
 
     # set so we can discard calls to `manage` for windows we already own
-    @window_set = new Util.Set()
+    @window_set = new Classes.Set()
     
     # define event handlers
     @win_mouse_down = (from, x, y) =>
 
       # print window info
-      Util.Log("Win: #{from.inspect()}, Parent: #{from.parent.inspect()}")
+      Logger.Log("Win: #{from.inspect()}, Parent: #{from.parent.inspect()}")
 
       if @dragging_enabled
         @dragged_window = from
@@ -57,10 +59,10 @@ class LayoutController extends Util.HasSignals
 
     @win_mouse_up = (from, x, y) =>
       if @dragged_window
-        Util.Log("going to swap #{from} with #{@dragged_window}")
+        Logger.Log("going to swap #{from} with #{@dragged_window}")
         # just swap windows for now
         try
-          Regions.swap(from, @dragged_window)
+          RegionLib.swap(from, @dragged_window)
         catch err
           @dragged_window = null
           throw err
@@ -73,7 +75,7 @@ class LayoutController extends Util.HasSignals
     @win_child_added = (from, child) =>
       if child.managed_windows
         @manage(child) if child.managed_windows
-        from.setColor(Constants.RED_COLOR)
+        from.setColor(Constants.NativeColors.RED)
       
     # Root event handlers #####################################################
     # enable/disable window events
@@ -96,7 +98,7 @@ class LayoutController extends Util.HasSignals
         for w in win.managed_windows
           @manage(w)
 
-      Util.Log "Managed #{win}"
+      Logger.Log "Managed #{win}"
       @windows.push(win)
       win.connect 'mouse-down', @win_mouse_down
       win.connect 'mouse-up', @win_mouse_up

@@ -1,200 +1,55 @@
-####
-# Utilities
-# Especially getters/setters
-####
 
-Gio = imports.gi.Gio
+IS_GJS = true # TODO: build system defines this
 
-is_gjs = -> # this function makes no sense: GSJ can't reach this before using GJS imports
-  true # TODO: make is_gjs a thing
+###
+  Utilities
+  -----------------------------------------------------------------------------
+  All the little things that don't make sense elsewhere.
+  Most of this is cruft that isn't being used.
+  # TODO: remove unused functions
+###
 
-# Constants
-Constants = {
+EPSILON = 0.000001
 
-  # for floating-point comparrison
-  EPSILON: 0.000001
-  GOLDEN: 1 / 1.618
-
-  # return from events
-  # stop event handlers for this event IMMEDIATLY
-  YES_STOP_EMITTING: true
-  # carry on
-  NO_CONTINUE_EMITTING: false
-  # Finish current event handlers on this object, but do not bubble to parent
-  DO_NOT_BUBBLE: 100
-
-  DEBUG: true
-
-  # layout directions
-  VERTICAL: false
-  HORIZONTAL: true
-
-  # which side when targeting an actor
-  BEFORE: true
-  AFTER: false
-
-  # size of splitters
-  SPACING: 9
-
-  # Parenting
-  NO_PARENT: null
-
-  KEYS: {
-    CTRL: 65507
-    ALT: 65513
-  }
-}
 type = (obj) ->
   obj.constructor
 
-# Number Tools ################################################################
-int = (n) -> Math.floor(n)
-
-# comparison with epsilon
-almost_equals = (a, b, epsilon = Constants.EPSILON) ->
-  Math.abs(a - b) < epsilon
-
-# Color stuff #################################################################
-
-random_color = (alpha = 15) ->
-  new Clutter.Color {
-    red: int(Math.random() * 255)
-    green: (Math.random() * 255)
-    blue: int(Math.random() * 255)
-    alpha: alpha
-  }
-
-
-if is_gjs()
-  # Add global colors for GJS
-  Clutter = imports.gi.Clutter
-  Constants.BLACK_COLOR = new Clutter.Color {
-    red: 0
-    green: 0
-    blue: 0
-    alpha: 255
-  }
-  Constants.WHITE_COLOR = new Clutter.Color {
-    red: 255
-    green: 255
-    blue: 255
-    alpha: 255
-  }
-  Constants.ROOT_COLOR = new Clutter.Color {
-  red: int(255/2)
-  green: int(255/2)
-  blue: int(255/2)
-  alpha: 255
-  }
-  Constants.MAIN_COLOR = new Clutter.Color {
-    red: 0
-    green: 0
-    blue: 255
-    alpha: 15
-  }
-  Constants.SEAM_COLOR = Constants.WHITE_COLOR
-  Constants.DRAG_COLOR = new Clutter.Color {
-    red:   12
-    green: 122
-    blue:  247
-    alpha: int(.35 * 255)
-  }
-#  Constants.DRAG_COLOR = new Clutter.Color {
-#    red: 0
-#    green:0
-#    blue: 0
-#    alpha: 50
-#  }
-  Constants.BUTTON_DEFAULT_COLOR = new Clutter.Color {
-    red: 0
-    green:0
-    blue: 0
-    alpha: Math.floor(.4 * 255)
-  }
-  Constants.BUTTON_HOVER_COLOR = new Clutter.Color {
-    red: 0
-    green: 0
-    blue: 0
-    alpha: Math.floor(.6 * 255)
-  }
-  Constants.NO_COLOR = new Clutter.Color {
-    red: 0
-    green: 0
-    blue: 0
-    alpha: 0
-  }
-  Constants.RED_COLOR = new Clutter.Color {
-    red: 255
-    green: 0
-    blue: 0
-    alpha: 255
-  }
-else
-  Constants.MAIN_COLOR = "rgba(0, 0, 255, #{15 / 255})"
-  Constants.SEAM_COLOR = "rgba(0, 0, 0, 1)"
-  Constants.DRAG_COLOR = "rgba(255, 255, 0, #{50 / 255})"
-  Constants.BUTTON_DEFAULT_COLOR = "rgba(0, 0, 0, .4)"
-  Constants.BUTTON_HOVER_COLOR = "rgba(0, 0, 0, .6)"
-  Constants.NO_COLOR = "rgba(0, 0, 0, 0)"
-
-  # Library Management
-  # get the root GJS entry file
-getCurrentFile = ->
-  # see http://stackoverflow.com/questions/10093102/how-to-set-a-including-path-in-the-gjs-code/14078345#14078345
-  stack = (new Error()).stack
-
-  stackLine = stack.split('\n')[1]
-  if not stackLine
-    throw new Error('Could not find current file')
-
-  match = new RegExp('@(.+):(\\d+)').exec(stackLine)
-  if not match
-    throw new Error('Could not find current file')
-
-  path = match[1]
-  file = Gio.File.new_for_path(path)
-  return {
-    path: file.get_path()
-    dirname: file.get_parent().get_path()
-    basename: file.get_basename()
-    line_number: match[2]
-  }
-
-
+# prototype of a GJS require shim
 require = (path) ->
   names = path.split('/')
   cur = imports
   for n in names
     cur = cur[n]
-  return cur
+  return cur.exports
 
+# Data Structure Tools #######################################################
 
-# Logging #####################################################################
-Log = ->
-  if is_gjs()
-    out = ""
-    for x in arguments
-      out += x
-    log(out)
-  else
-    console.log.apply(console, arguments)
+# creates a new aray with `arr`'s items in a random order
+shuffle = (arr) ->
+  out = []
+  while arr.length
+    idx = Math.min(Math.floor(Math.random() * arr.length), arr.length - 1)
+    out.push(
+      arr.splice(idx, 1)[0]
+    )
+  out
 
-LogGroup = ->
-  if is_gjs()
-    Log("/-#{arguments[0]}---")
-    Log.apply(null, arguments)
-  else
-    console.group.apply(console, arguments)
+# run fn on all items in tree
+# get_next_items will be called on tree
+# it should return an array of items to recursively traverse
+traverse = (tree, get_next_items, fn) ->
+  fn(tree)
+  items = get_next_items(tree)
+  for i in items
+    traverse(i, get_next_items, fn)
 
-LogGroupEnd = ->
-  if is_gjs()
-    Log("----/")
-  else
-    console.groupEnd()
+# Number Tools ################################################################
 
-LogKeys = (obj) ->
-  for k, _ of obj
-    Log(k)
+int = (n) -> Math.floor(n)
+
+# comparison with epsilon
+almost_equals = (a, b, epsilon = EPSILON) ->
+  Math.abs(a - b) < epsilon
 
 # Binding tools ###############################################################
 
@@ -220,16 +75,6 @@ proxy = (local, remote, methods...) ->
   for method in methods
     local[method] = -> remote[method].apply(remote, arguments)
 
-# Tree tools ##################################################################
-# run fn on all items in tree
-# get_next_items will be called on tree
-  # it should return an array of items to recursively traverse
-traverse = (tree, get_next_items, fn) ->
-  fn(tree)
-  items = get_next_items(tree)
-  for i in items
-    traverse(i, get_next_items, fn)
-
 # Sanity checks ###############################################################
 
 assert = (desc, fn_or_condition) ->
@@ -238,216 +83,30 @@ assert = (desc, fn_or_condition) ->
   else
     res = fn_or_condition
   if res is false
-    Util.Log("Failed assertion '#{desc}': #{fn_or_condition.toString()}")
+    throw new Error("Failed assertion '#{desc}': #{fn_or_condition.toString()}")
 
 
-
-
-
-
-# Basic Classes ###############################################################
-# toString support with UUIDs
-class Id
-  uuid_counter = 0
-  uuid = ->
-    uuid_counter += 1
-
-  constructor: ->
-    @_id = uuid()
-
-  toString: ->
-    "#{@constructor.name}<#{@_id}>"
-
-class Set extends Id
-  constructor: (arr = []) ->
-    super()
-    @_set = {}
-
-    for x in arr
-      @add(x)
-
-    return this
-
-  add: (x) ->
-    if @contains(x)
-      return false
-    @_set[x] = true
-
-  remove: (x) ->
-    if not contains(x)
-      return false
-    delete @_set[x]
-
-  contains: (x) ->
-    @_set[x] == true
-
-
-# TODO subclass Array to use for Container.managed_windows
-# because we need a way to make sure no window is in two places at once
-
-
-###
-  Signals
-  -----------------------------------------------------------------------------
-  this is an implementation of a GTK/GObject style signals system.
-
-  these signals are arbitrary non-bubbling events that can be connected to any
-  number of listening functions.
-
-  This is mostly just a coffeescript port of gjs-1.0/signals.js
-
-  Objects extending HasSignals may optionally specify an array of valid signal
-  names in thier prototype with @signalsEmitted. If you object emits "drag-start",
-  "drag-end" and "drag-motion" then you should have
-###
-class HasSignals extends Id
-
-# Class Methods #############################################################
-
-  @extend = (obj) ->
-    obj.connect = HasSignals::connect
-    obj.disconnect = HasSignals::disconnect
-    obj.disconnectAll = HasSignals::disconnect
-    obj.emit = HasSignals::emit
-
-  # Connection Management #####################################################
-
-  connect: (name, callback) ->
-    # Only allow functions as callbacks
-    if typeof callback != 'function'
-      throw new TypeError("must connect signal to a function")
-
-    if @signalsEmitted?
-      if not name in @signalsEmitted
-        Util.Log("Connecting undeclared signal #{name} on #{this}")
-
-    # add signal internals only if someone is listening
-    if not @_signals?
-      @_signals = {
-        connections: []
-        nextId: 1
-        # TODO: faster then gjs-1.0's simple signals array?
-        # more hashmaps, maybe?
-      }
-
-    id = @_signals.nextId
-    @_signals.nextId += 1
-
-    sig_struct = {
-      'id': id
-      'name': name
-      'callback': callback
-      'disconnected': false
-    }
-
-    ###
-    Iterating through all the signals on each emission is
-    O(n), but the Gnome developers wanted to keep things light-weight and
-    avoid memory overhead. On the web we'll be contending with Internet
-    Explorer, so maybe we should change this to signal-name-specific type
-    arrays
-    ###
-    @_signals.connections.push(sig_struct)
-
-    # Util.Log("connect: on #{name} do #{callback}")
-
-    return id
-
-  disconnect: (id) ->
-    if @_signals?
-      for c in @_signals.connections
-        if c.id == id
-          if c.disconnected
-            throw new Error("Signal handler id #{id} was already disconnected")
-
-          # the disconnected flag is for removal during signal emission
-          # herp derp coffeescript loops make this ugly and slow
-          @_signals.connections.splice(i, @_signals.connections.indexOf(c))
-
-          return
-
-    throw new Error("No signal connection with id #{id} found")
-
-  disconnectAll: ->
-    if @_signals?
-      for c in @_signals.connections
-        @disconnect(c.id)
-
-  # Signal Emission ###########################################################
-
-  emit: (name, args...) ->
-
-    if @signalsEmitted?
-      if not name in @signalsEmitted
-        Util.Log("emit: emitting undeclared signal named #{name}")
-
-    # No listeners, no actions taken
-    if not @_signals?
-      return
-
-    # filter to deal with just this signal
-    # creating this local handlers array also deals with removal/addition while
-    # emitting
-    connections = (c for c in @_signals.connections when c.name == name)
-
-    #
-    if connections.length == 0
-      return
-
-    call_args = [this].concat(args)
-
-    for handler in connections
-      if not handler.disconnected
-        if Constants.DEBUG
-
-          res = handler.callback.apply(null, call_args)
-          return Constants.YES_STOP_EMITTING if res == Constants.YES_STOP_EMITTING # stop emitting on false from handler
-
-        else
-          # Event loop with error hanbdling
-          try
-            res = handler.callback.apply(null, call_args)
-            return Constants.YES_STOP_EMITTING if res == Constants.YES_STOP_EMITTING # stop emitting on false from handler
-          catch err
-            Util.Log("Error in callback for signal #{name} on #{this}")
-            Util.Log(err.stack) if err.stack
-
-    return res
-
-  # emit this event, then emit the same event off of the parent if it goes unhandled
-  emitAndBubble: (name, args...) ->
-    res = @emit(name, args...)
-
-    if @parent and (res != Constants.YES_STOP_EMITTING or res != Constants.DO_NOT_BUBBLE)
-      @parent.emitAndBubble(name, args...)
-
-
-
-
-# Library Normalization #######################################################
-# This is what the lib looks like when use from GJS
+# Exports #####################################################################
 
 exports = {
-  Constants: Constants
+  require: require
 
-  # Logging
-  Log: Log
-  LogGroup: LogGroup
-  LogGroupEnd: LogGroupEnd
-  LogKeys: LogKeys
-
-
-  # Classes
-  Id: Id
-  Set: Set
-  HasSignals: HasSignals
-
-  # Functions
+  # class tools
   type: type
+
+  # Number tools
+  int: int
   almost_equals: almost_equals
-  is_gjs: is_gjs
-  runAlso: runAlso
-  bindRemoteFunction: bindRemoteFunction
-  assert: assert
+
+  # data structure tools
   traverse: traverse
+  shuffle:  shuffle
+
+  # binding tools. do I even use these? answer: no
+  bindRemoteFunction: bindRemoteFunction
+  runAlso: runAlso
+  proxy: proxy
+
+  # sanity: also frighteningly unused
+  assert: assert
 }

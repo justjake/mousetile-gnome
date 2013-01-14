@@ -1,18 +1,24 @@
+IS_GJS = true # TODO: move to build system
+
+
+# TODO: document Draggables system. it's a bit odd
+
 # Global libraries
-Lang = imports.lang
-Clutter = imports.gi.Clutter
-GObject = imports.gi.GObject
+Clutter   = imports.gi.Clutter
 
 # Local libraries
-Util = imports.Mousetile.util
-RectLib = imports.Mousetile.rect
+Util      = imports.Mousetile.util.exports
+Classes   = imports.Mousetile.classes.exports
+Constants = imports.Mousetile.constants.exports
+
+RectLib   = imports.Mousetile.rect.exports
 Rect = RectLib.Rect
 
-SPECIAL_AGENCY_KEY = Util.Constants.KEYS.CTRL
+SPECIAL_AGENCY_KEY = Constants.KEYS.CTRL
 
 # DraggableController #########################################################
 # activates and de-activates all the drag shadows
-class DraggableController extends Util.Id
+class DraggableController extends Classes.Id
   constructor: ->
     super()
     @draggables = []
@@ -25,13 +31,12 @@ class DraggableController extends Util.Id
       shadow.addConstrain(c)
 
     # GJS event activation
-    if Util.is_gjs()
+    if IS_GJS
       obj.native.set_reactive(true)
 
     return shadow
 
   manage: (drg) ->
-    # Util.Log "Controller #{this} managed #{drg}"
     @draggables.push(drg)
     if @can_drag
       @enable(drg)
@@ -57,9 +62,6 @@ class DraggableController extends Util.Id
 # global instance
 DefaultController = new DraggableController()
 
-# Make an object dragable. Fires the objects dragEnd event function
-# when dragging stops
-
 # Currently implemented with shadow draggables: instead of actually
 # dragging the object, create a copy and drag that
 makeDraggable  = (obj, constraints = []) ->
@@ -68,7 +70,7 @@ makeDraggable  = (obj, constraints = []) ->
 
 
 # DragShadow ##################################################################
-
+# moved about by the mouse
 class AbstractDragShadow extends Rect
 
   signalsEmitted: ['drag-start', 'drag-motion', 'drag-end']
@@ -178,7 +180,7 @@ class AbstractDragShadow extends Rect
 class ClutterDragShadow extends AbstractDragShadow
   constructor: (to_clone) ->
     super(to_clone)
-    @native.set_background_color(Util.Constants.DRAG_COLOR)
+    @native.set_background_color(Constants.NativeColors.DRAGGABLE_HANDLE)
 
     # respond to events
     @native.set_reactive(true)
@@ -192,12 +194,17 @@ class ClutterDragShadow extends AbstractDragShadow
 
 
 
-if Util.is_gjs()
+if IS_GJS
   DragShadow = ClutterDragShadow
 else
   DragShadow = DomDragShadow
 
 # exports namespace
-exports = {}
-exports.makeDraggable = makeDraggable
-exports.DragShadow = DragShadow
+exports = {
+  # functions
+  makeDraggable: makeDraggable
+
+  # classes
+  DragShadow:    DragShadow
+  DraggableController: DraggableController
+}

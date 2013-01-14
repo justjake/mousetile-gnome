@@ -1,23 +1,14 @@
+
+IS_GJS = true
+
 ###
   Colors
+  -----------------------------------------------------------------------------
   Although there is no color class, these functions are proved as a way
   of constructing colors in a pleasant way
 ###
 
 Clutter = imports.gi.Clutter
-Util = imports.Mousetile.util
-
-
-shuffle = (arr) ->
-  out = []
-  while arr.length
-    idx = Math.min(Math.floor(Math.random() * arr.length), arr.length - 1)
-    out.push(
-      arr.splice(idx, 1)[0]
-    )
-  out
-
-
 
 # Number utils
 bound0 = (x, max) ->
@@ -33,14 +24,15 @@ interpolate = {
     begin + distance * ratio
 }
 
-
 hash_to_string = (hash) ->
   res = "{"
   for k, v of hash
     res += " #{k}: #{v},"
   res += " }"
 
-# color structs
+# Color creation ##############################################################
+
+# RGBA struct
 rgba = (r = 0, g = 0, b = 0, a = 255) ->
   return {
     r: bound0(r, 255)
@@ -49,21 +41,27 @@ rgba = (r = 0, g = 0, b = 0, a = 255) ->
     a: bound0(a, 255)
   }
 
+
+# Hue saturation value struct
 hsv = (h, s, v) ->
   res = {
     h: bound0(h, 360)
     s: bound0(s, 100)
     v: bound0(v, 100)
   }
-  Util.Log("hsv: #{hash_to_string(res)}")
   return res
 
 
-parse_hex = (hex) ->
-  r = parseInt(hex[1..2], 16)
-  g = parseInt(hex[3..4], 16)
-  b = parseInt(hex[5..6], 16)
-  rgba(r, b, b)
+# woo random colors
+random = (alpha) ->
+  rgba(
+    Math.random() * 255,
+    Math.random() * 255,
+    Math.random() * 255,
+    alpha
+  )
+
+# Color conversion ############################################################
 
 # See http://bgrins.github.com/TinyColor/docs/tinycolor.html
 hsv_to_rgba = (hsv) ->
@@ -82,29 +80,64 @@ hsv_to_rgba = (hsv) ->
   b = [p, p, t, v, v, q][mod]
 
   res = rgba(r * 255, g * 255, b * 255)
-  Util.Log("rgba is #{hash_to_string(res)}")
   return res
 
 
 
-if Util.is_gjs()
-  to_native = (color) ->
-    for k, v of color
-      # ints only plz
-      color[k] = Math.floor(v)
 
+# parse an html-style color hex, eg: '#FF00DD' into an RGBA struct
+parse_hex = (hex) ->
+  r = parseInt(hex[1..2], 16)
+  g = parseInt(hex[3..4], 16)
+  b = parseInt(hex[5..6], 16)
+  rgba(r, b, b)
+
+
+
+
+
+to_native = (color) ->
+  for k, v of color
+    # ints only plz
+    color[k] = Math.floor(v)
+
+  if IS_GJS
     new Clutter.Color {
       red: color.r
       green: color.g
       blue: color.b
       alpha: color.a
     }
-else
-  to_native = (color) ->
+  else
     "rgba(#{color.r},#{color.g},#{color.b},#{color.a/255})"
 
 
+
+
+
+# Color operations ############################################################
+# return a new color with a different opacity
+fade = (color, new_alpha) ->
+  rgba(
+    color.r,
+  color.g,
+  color.b,
+  new_alpha
+  )
+
+
+
 # Color series ################################################################
+# Transform a series that emits RGB-structs into a series that emits native
+# colors
+native_series = (fn) ->
+  ->
+    color = fn()
+    # convert to RGB as needed
+    color = hsv_to_rgba(color) if color.h?
+    to_native(color)
+
+
 
 # from https://kuler.adobe.com/#themeID/2209535
 tricolor = (steps) ->
@@ -133,6 +166,9 @@ tricolor = (steps) ->
     series[calls++ % series.length]()
 
   return get_next
+
+
+
 
 # Mondrial-like colors
 piet = (steps) ->
@@ -177,6 +213,9 @@ piet = (steps) ->
     series[calls++ % series.length]()
 
   return get_next
+
+
+
 
 # zenburn colors
 zenburn = (steps) ->
@@ -243,6 +282,10 @@ zenburn = (steps) ->
   get_next = ->
     colors[calls++ % colors.length]
 
+
+
+
+
 # dark colors
 dark = (series_steps) ->
   dark = (hue, stepNum) ->
@@ -260,11 +303,28 @@ dark = (series_steps) ->
   return progress(100, dark)
 
 
+# Exports #####################################################################
 
-native_series = (fn) ->
-  ->
-    color = fn()
-    # convert to RGB as needed
-    color = hsv_to_rgba(color) if color.h?
-    to_native(color)
+exports = {
+  interpolate: interpolate
 
+  # color creation
+  rgba:   rgba
+  hsv:    hsv
+  random: random
+
+  # color conversion
+  parse_hex:   parse_hex
+  hsv_to_rgba: hsv_to_rgba
+  to_native:   to_native
+
+  # color operations
+  fade: fade
+
+  # series
+  native_series: native_series
+
+  piet:     piet
+  zenburn:  zenburn
+  tricolor: tricolor
+}
