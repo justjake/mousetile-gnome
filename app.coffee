@@ -40,7 +40,7 @@ Layouts = imports.Mousetile.manager.layout
 AssistantLib = imports.Mousetile.manager.assistant
 
 # App Constants ###############################################################
-W = 1000
+W = 1600
 H = W * Constants.GOLDEN
 
 C = RegionLib.Region

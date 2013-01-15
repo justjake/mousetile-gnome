@@ -62,7 +62,8 @@ Colors = {
   BLUE:        rgba(  0,   0, 255)
   GREEN:       rgba(  0, 255,   0)
   GREY:        rgba(255/2, 255/2, 255/2)
-  # totally transparent
+  # totally transparent, although this is replaced
+  # by special implementation-specific constants below
   NONE:        rgba(  0,   0,   0,  0)
 
   # palette of interesting colors
@@ -71,7 +72,7 @@ Colors = {
 
 #### Styling
 Colors.RECT_COLOR = fade(Colors.BLUE, 0.1 * 255)
-Colors.SEAM_COLOR = Colors.BLACK
+Colors.SEAM_COLOR = Colors.GREY
 Colors.ROOT_COLOR = Colors.WHITE
 Colors.DRAGGABLE_HANDLE = fade(Colors.ACTIVE_BLUE, 0.15 * 255)
 
@@ -85,7 +86,7 @@ for k, v of Colors
 
 # sub in special implementation of NONE color
 if IS_GJS
-  NativeColors.NONE = 0
+  NativeColors.NONE = null
 else
   NativeColors.NONE = 'transparent'
 
