@@ -56,10 +56,8 @@ mergeIntoParent = (region) ->
   else if parent.format != region.format
     Logger.Log("Tried to merge #{region} into #{parent} but failed: format mismatch")
 
-
   # remove the region from its parent, and capture its former index
   idx = parent.removeWindow(region)
-
 
   # transform the region's children so they all fit into the same
   #   space as the region, then add them to the parent in order

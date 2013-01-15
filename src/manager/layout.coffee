@@ -182,4 +182,12 @@ class LayoutController extends Classes.HasSignals
     Logger.Log("Previewing role #{role} (does nothing)")
 
   invokeRole: (role, win, dest) ->
+      if role is 'swap-center'
+        Logger.Log("swapping #{win} and #{dest}")
+        RegionLib.swap(win, dest)
+        for w in [win, dest]
+          if w.parent.format == w.format and w.managed_windows.length > 0
+            RegionLib.mergeIntoParent(w)
+            # "nothing"
 
+          w.parent.layoutRecursive()
