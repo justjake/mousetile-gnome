@@ -93,7 +93,6 @@ class LayoutController extends Classes.HasSignals
       'child-added': (from, child) =>
         if child.managed_windows
           @manage(child) if child.managed_windows
-          from.setColor(Constants.NativeColors.RED)
     }
 
       # deprecated: we'll be over the assistant

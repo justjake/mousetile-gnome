@@ -119,15 +119,19 @@ class Container extends Rect
       target = 1
 
       # special case: only 1 managed window
+      if @managed_windows.length = 1
+        @managed_windows[0].ratio = 1
+        return
 
       total = @managed_windows.reduce ((prev, cur) => prev + cur.ratio), 0
 
-      transform = target / total
+      transform = (total - target) / @managed_windows.length
 
-      Logger.Log("Normalizing layout from #{total} to #{target} with trasform factor #{transform}")
+      Logger.Log("Normalizing layout from #{total} to #{target} with trasform factor #{transform}
+        (#{transfor * @managed_windows.length} total)")
 
       for w in @managed_windows
-        w.ratio *= transform
+        w.ratio += transform
 
 
     # lay out all children based on our HOR/VERT
@@ -145,16 +149,7 @@ class Container extends Rect
           @_normalizeLayout()
 
         # what set of properties should we use?
-        if @format is VERTICAL
-            ord = 'Y'
-            off_ord = 'X'
-            dim = 'Height'
-            off_dim = 'Width'
-        else
-            ord = 'X'
-            off_ord = 'Y'
-            dim = 'Width'
-            off_dim = 'Height'
+        p = @_layoutParams()
 
         space_availible = @spaceAvailible()
         space_consumed = 0
@@ -167,16 +162,16 @@ class Container extends Rect
             size = fix(ratio, space_availible)
 
             # Logger.Log("layout ratio: #{ratio}, size: #{size}, spess: #{space_consumed}")
-            set(c, dim, size)
+            set(c, p.dim, size)
 
             ## other dimension
-            set(c, off_dim, get(this, off_dim))
+            set(c, p.off_dim, get(this, p.off_dim))
 
             # set position
             ## primary ord
-            set(c, ord, space_consumed)
+            set(c, p.ord, space_consumed)
             ## off ord
-            set(c, off_ord, 0)
+            set(c, p.off_ord, 0)
 
             # consume space
             space_consumed += size + @spacing
@@ -187,8 +182,8 @@ class Container extends Rect
         # if we have any space left over
         if final
           while space_availible > space_consumed
-            size = get(final, dim)
-            set(final, dim, size + 1)
+            size = get(final, p.dim)
+            set(final, p.dim, size + 1)
             space_consumed += 1
 
         # lay out seams

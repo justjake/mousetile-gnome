@@ -16,7 +16,7 @@ Constants = {
   DEBUG: true
 
   # for floating-point comparrison
-  EPSILON: 0.000001
+  EPSILON: 0.00001
 
   GOLDEN: 1 / 1.618
 
@@ -30,18 +30,22 @@ Constants = {
 
 
   # layout directions
-  VERTICAL: false
+  # these are boolean because it's fun to be able to `not region.format`
+  VERTICAL:   false
   HORIZONTAL: true
 
   # which side when targeting an actor
   BEFORE: true
-  AFTER: false
+  AFTER:  false
 
   # size of seams
   SPACING: 9
 
   # Parenting
   NO_PARENT: null
+
+  # for fun
+  HEART: "♥" # seems buggy TODO: fix heart bugs
 
   KEYS: {
     CTRL: 65507
@@ -55,7 +59,7 @@ Colors = {
   BLACK:       rgba(  0,   0,   0)
   WHITE:       rgba(255, 255, 255)
   RED:         rgba(255,   0,   0)
-  BLUE:        rgba(255,   0,   0)
+  BLUE:        rgba(  0,   0, 255)
   GREEN:       rgba(  0, 255,   0)
   GREY:        rgba(255/2, 255/2, 255/2)
   # totally transparent
@@ -66,9 +70,9 @@ Colors = {
 }
 
 #### Styling
-Colors.RECT_COLOR = fade(Colors.BLUE, 0.4 * 255)
-Colors.SEAM_COLOR = Colors.WHITE
-Colors.ROOT_COLOR = Colors.GREY
+Colors.RECT_COLOR = fade(Colors.BLUE, 0.1 * 255)
+Colors.SEAM_COLOR = Colors.BLACK
+Colors.ROOT_COLOR = Colors.WHITE
 Colors.DRAGGABLE_HANDLE = fade(Colors.ACTIVE_BLUE, 0.15 * 255)
 
 Colors.BUTTON_NORMAL = fade(Colors.BLACK, 0.4 * 255)

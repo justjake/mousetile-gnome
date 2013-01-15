@@ -120,9 +120,9 @@ to_native = (color) ->
 fade = (color, new_alpha) ->
   rgba(
     color.r,
-  color.g,
-  color.b,
-  new_alpha
+    color.g,
+    color.b,
+    new_alpha
   )
 
 
@@ -327,4 +327,5 @@ exports = {
   piet:     piet
   zenburn:  zenburn
   tricolor: tricolor
+  dark:     dark
 }

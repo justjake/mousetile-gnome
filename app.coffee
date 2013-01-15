@@ -40,14 +40,10 @@ Layouts = imports.Mousetile.manager.layout
 AssistantLib = imports.Mousetile.manager.assistant
 
 # App Constants ###############################################################
-W = 2000
+W = 1000
 H = W * Constants.GOLDEN
 
-class C extends RegionLib.Region
-  @constructor: (args...) ->
-    super(args...)
-    @connect 'window-added', =>
-      @setColor(Constants.NativeColors.RED)
+C = RegionLib.Region
 
 # Alternate between `true` and `false`
 select_alternate = (initial) ->
@@ -56,27 +52,28 @@ select_alternate = (initial) ->
     prev = ! prev
     return prev
 
-# next_color = Color.native_series(Color.piet(15))
-# next_color = Color.native_series(Color.tricolor(13))
-next_color = Color.native_series(Color.zenburn(15))
-# next_color = Color.native_series(Color.dark(13))
+# color series - currently unusded
+piet = Color.native_series(Color.piet(15))
+tricolor = Color.native_series(Color.tricolor(13))
+zenburn = Color.native_series(Color.zenburn(15))
+dark = Color.native_series(Color.dark(13))
 
-# create a [Empty, [Empty, ...]] Tree
-create_tree = (dir_selector, count) ->
+# create a [Empty, [Empty, ...]] Tree of depth `count`
+create_tree = (dir_selector, depth, color_fn) ->
   # base case: return a plain container
-  if count == 0
+  if depth == 0
     base = new C(W, H)
-    base.setColor(next_color())
+    base.setColor(color_fn()) if color_fn
     return base
 
   # reverse the direction
   root = new C(W, H, dir_selector())
 
   empty_child = new C(W, H)
-  empty_child.setColor(next_color())
+  empty_child.setColor(color_fn()) if color_fn
 
   # sub-tree
-  full_child = create_tree(dir_selector, count - 1)
+  full_child = create_tree(dir_selector, depth - 1)
 
   # add children
   root.addLast(empty_child)
@@ -85,14 +82,6 @@ create_tree = (dir_selector, count) ->
   full_child.ratio = 1 - empty_child.ratio
 
   return root
-
-
-layout_and_show = (tree) ->
-  tree.eachWindow (win) ->
-    # @native.show()
-    win.layout()
-
-
 
 # Main ########################################################################
 # Create a stage and run the demo
@@ -108,22 +97,16 @@ main = ->
 
   # toggle seams so we can drag parent windows
   manager.connect "drag-enabled", ->
-    Logger.Log("disabling seams")
+    # Logger.Log("disabling seams")
     SeamLib.DRAG_CONTROLLER.disableAll()
   manager.connect "drag-disabled", ->
-    Logger.Log("enabling seams")
+    # Logger.Log("enabling seams")
     SeamLib.DRAG_CONTROLLER.enableAll()
 
-  layout_and_show(tree)
-
-  # try and use assistant
-#  ast = new AssistantLib.Assistant()
-#  root.addChild(ast)
-#  [x, y] = RectLib.center(root, ast)
-#  ast.setX Math.floor x
-#  ast.setY Math.floor y
+  tree.layoutRecursive(true)
 
   # Clutter setup
+  # this sort of raw context wrangling is outside of Mousetile's scope
 
   # stage setup
   stage = Clutter.Stage.get_default()
@@ -139,7 +122,7 @@ main = ->
   stage.destroy()
 
 
-# CHOO CHOO DO IT
+# CHOO CHOO DO IT BITCHES
 main()
 
 
