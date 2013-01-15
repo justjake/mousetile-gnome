@@ -116,16 +116,19 @@ class Region extends ContainerLib.Container
         op_region = new Region(5, 5, not @format, @spacing)
         idx = @managed_windows.length + idx if idx < 0
         existant_window = @managed_windows[idx]
+        op_region.ratio = existant_window.ratio
 
         # replace window with new region
         @replaceAtIndex(op_region, idx)
+        op_region.needs_layout = true
         
         # set up new region
-        op_region.transact ->
-            for win in [existant_window, new_win]
-              win.needs_layout = true
-            @addNewWindowAtIndex(existant_window, 0)
-            @addNewWindowAtIndex(new_win, 0, side_for_new)
+        for win in [existant_window, new_win]
+          win.needs_layout = true
+        op_region.addNewWindowAtIndex(existant_window, 0)
+        op_region.addNewWindowAtIndex(new_win, 0, side_for_new)
+
+        return op_region
 
 
 # Exports #####################################################################

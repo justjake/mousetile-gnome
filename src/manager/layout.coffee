@@ -181,13 +181,75 @@ class LayoutController extends Classes.HasSignals
   previewRole: (role) ->
     Logger.Log("Previewing role #{role} (does nothing)")
 
-  invokeRole: (role, win, dest) ->
-      if role is 'swap-center'
-        Logger.Log("swapping #{win} and #{dest}")
-        RegionLib.swap(win, dest)
-        for w in [win, dest]
-          if w.parent.format == w.format and w.managed_windows.length > 0
-            RegionLib.mergeIntoParent(w)
-            # "nothing"
+  invokeRole: (role, win, target) ->
+    [action, dir] = role.split('-')
+    dest = target.parent
+    win_has_chilren = win.managed_windows.length > 0
+    old_parent = win.parent
 
-          w.parent.layoutRecursive()
+    # sanity check: we need a destination!
+    if not dest
+      throw new Error("invokeRole: target window has no parent")
+
+    target_idx = dest.managed_windows.indexOf(target)
+
+    if dir in ['top', 'bottom']
+      format = Constants.VERTICAL
+    else
+      format = Constants.HORIZONTAL
+
+    if dir in ['top', 'left']
+      side = Constants.BEFORE
+    else
+      side = Constants.AFTER
+
+    # actions
+
+    # swap the locations of win and target
+    if action is 'swap'
+      Logger.Log("swapping #{win} and #{target}")
+      RegionLib.swap(win, target)
+      for w in [win, target]
+        if w.parent.format == w.format and win_has_chilren
+          RegionLib.mergeIntoParent(w) #TODO: make this work
+        w.parent.layoutRecursive() if w.parent
+    else
+      # for all other actions we first remove the window from its parent
+      win.parent.removeWindow(win) if win.parent
+
+    # split the targeted section in half by `direction`
+    if action is 'split'
+      if format == dest.format
+        # no need to add a new wrapper, just resize the target
+        dest.splitWindowAtIndex(win, target_idx, side)
+        if win.format == dest.format and win_has_chilren
+          RegionLib.mergeIntoParent(win)
+      else # format mismatch
+        new_region = dest.splitOtherDirectionAtIndex(win, target_idx, side)
+        if new_region.format == win.format and win_has_chilren
+          RegionLib.mergeIntoParent(win)
+
+    ###
+    shove the whole layout in a direction to make room for the new window.
+    For example, 'shove-top' produces this trasformation on the following
+    HORIZONTAL layout
+    -----------          -----------
+    |    |    |   ->     |_________|  new window is on top
+    |    |    |          |    |    |
+    -----------          -----------
+    ###
+
+    if action is 'shove'
+      if format == dest.format
+        # just add the layout to the beginning/end
+        if side == Constants.BEFORE
+          dest.addFirst(win)
+        else
+          dest.addLast(win)
+      else
+        # basically the same thing as calling 'split' on the dest itself
+        return @invokeRole("split-#{dir}", win, dest)
+
+    # cleanup
+    dest.layoutRecursive(true)
+    old_parent.layoutRecursive(true) if old_parent

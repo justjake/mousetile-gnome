@@ -115,7 +115,10 @@ class Container extends Rect
     # total ratio should be 1.
     # if not, scale everything so that it is 1.
     _normalizeLayout: ->
+
       target = 1
+
+      # special case: only 1 managed window
 
       total = @managed_windows.reduce ((prev, cur) => prev + cur.ratio), 0
 
