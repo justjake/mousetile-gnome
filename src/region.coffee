@@ -12,6 +12,9 @@ Constants    = imports.Mousetile.constants.exports
 ContainerLib = imports.Mousetile.container.exports
 Logger       = imports.Mousetile.logger.exports
 
+if Constants.DEBUG
+  TextLib = imports.Mousetile.text.exports
+
 
 # swap two regions
 swap = (from, to) ->
@@ -78,6 +81,13 @@ class Region extends ContainerLib.Container
     # when splitting / adding windows
     BEFORE = Constants.BEFORE
     AFTER  = Constants.AFTER
+
+    constructor: (args...) ->
+      super(args...)
+
+      if Constants.DEBUG
+        txt = new TextLib.Text(@toString(), Constants.NativeColors.BLUE)
+        @addChild(txt)
 
     # transform existing windows ratios to make room for new window
     # preservign thier scale to each other
