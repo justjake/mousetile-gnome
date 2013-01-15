@@ -127,7 +127,7 @@ main = ->
 
   # stage setup
   stage = Clutter.Stage.get_default()
-  stage.title = "Mousetile Clutter Test"
+  stage.title = "♥ Mousetile Clutter Test ♥"
   stage.set_size(W, H) #worksformewontfix
 
   # add root to the stage

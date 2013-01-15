@@ -4,6 +4,8 @@
   Configuration and enum-like types for Mousetile
 ###
 
+IS_GJS = true #TODO: move to build system
+
 ColorLib = imports.Mousetile.color
 
 rgba = ColorLib.rgba
@@ -77,6 +79,11 @@ NativeColors = {}
 for k, v of Colors
   NativeColors[k] = ColorLib.to_native(v)
 
+# sub in special implementation of NONE color
+if IS_GJS
+  NativeColors.NONE = 0
+else
+  NativeColors.NONE = 'transparent'
 
 # Exports #####################################################################
 

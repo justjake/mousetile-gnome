@@ -27,15 +27,24 @@ class AbstractRect extends Classes.HasSignals
   # signalsEmitted: ['resize', 'move']
   signalsEmitted: ['parent-changed']
 
-  constructor: (width = 0, height = 0) ->
+  default_color: Constants.NativeColors.RECT_COLOR
+
+  constructor: (width = 0, height = 0, x = 0, y = 0) ->
     super()
     @children = []
     @parent = NO_PARENT
 
+    @width = null
+    @height = null
+    @x = null
+    @y = null
+
     @setWidth(width)
     @setHeight(height)
+    @setX(x)
+    @setY(y)
 
-    @setColor(Constants.NativeColors.RECT_COLOR)
+    @setColor(@default_color) if @default_color
 
   # like toString, but with more info
   inspect: ->
@@ -84,7 +93,7 @@ class AbstractRect extends Classes.HasSignals
 
   # Style
 
-  setColor: (c) -> throw new Error("Must supply a native color representation")
+  setColor: (c) ->
 
   # Visibility
   show: ->
@@ -97,23 +106,31 @@ class AbstractRect extends Classes.HasSignals
 
   # property: width
   setWidth: (w) ->
+    @width = w
     # @emit('resize', width: w)
   getWidth: ->
+    @width
 
   # property: height
   setHeight: (h) ->
+    @height = h
     # @emit('resize', height: h)
   getHeight: ->
+    @height
 
   # property: x
   setX: (x) ->
+    @x = x
     # @emit('move', x: x)
   getX: ->
+    @x
 
   # property: y
   setY: (y) ->
+    @y = y
     # @emit('move', y: y)
   getY: ->
+    @y
 
 ###
   DomRect
@@ -261,8 +278,8 @@ class ClutterRect extends AbstractRect
     @native.remove_child(rect.native)
     super(rect)
 
-  setAboveSibling: (to_raise, sibling = null) ->
-      @native.set_child_above_sibling(to_raise.native, sibling)
+  setAboveSibling: (to_raise, sibling = {'native': null}) ->
+    @native.set_child_above_sibling(to_raise.native, sibling.native)
 
 
 
@@ -278,19 +295,19 @@ class ClutterRect extends AbstractRect
 
   # PROPERTIES
   # property: width
-  setWidth: (w) -> @native.set_width(w)
+  setWidth: (w) -> @native.set_width(Util.int w)
   getWidth: -> @native.get_width()
 
     # property: height
-  setHeight: (h) -> @native.set_height(h)
+  setHeight: (h) -> @native.set_height(Util.int h)
   getHeight: -> @native.get_height()
 
     # property: x
-  setX: (x) -> @native.set_x(x)
+  setX: (x) -> @native.set_x(Util.int x)
   getX: -> @native.get_x()
 
     # property: y
-  setY: (y) -> @native.set_y(y)
+  setY: (y) -> @native.set_y(Util.int y)
   getY: -> @native.get_y()
 
 
@@ -322,18 +339,39 @@ parent_coord = (child, x, y) ->
 deparent_coord = (child, x, y) ->
   return [x - child.getX(), y - child.getY()]
 
+# Get the rect's X and Y in the top-most coordinate space
+global_position = (rect) ->
+  x = 0
+  y = 0
+  r = rect
+  while r.parent isnt null
+    x += r.getX()
+    y += r.getY()
+    r = r.parent
+  [x, y]
+
 
 # get all the children of a rect (including itself)
 is_child_of = (rect) ->
+  res = []
   rect.eachChild (r) ->
     res.push(r)
 
   return res
 
-exports = {}
-exports.Rect = Rect
-exports.DomRect = DomRect
-exports.ClutterRect = ClutterRect
-exports.center = center
-exports.parent_coord = parent_coord
-exports.deparent_coord = deparent_coord
+# Exports #####################################################################
+exports = {
+  # classes
+  AbstractRect: AbstractRect # useful for low-impact rects
+  DomRect:      DomRect
+  ClutterRect:  ClutterRect
+  Rect:         Rect
+
+  # functions
+  center:          center
+
+  parent_coord:    parent_coord
+  deparent_coord:  deparent_coord
+
+  global_position: global_position
+}

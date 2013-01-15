@@ -23,16 +23,23 @@ ASSET_PATH = 'assets'
 role_icon = (role) ->
   "#{ASSET_PATH}/#{role}.png"
 
+# a wrapper around an icon with extra padding and BG color
 class DropActionButton extends RectLib.Rect
   SPACING = 3
 
-  constructor: (src) ->
-    @icon = new ImageLib.Image(src)
+  @default_color: Constants.NativeColors.BUTTON_NORMAL
+
+  constructor: (@role) ->
+    @icon = new ImageLib.Image(role_icon(@role))
     super(@icon.getWidth() + SPACING * 2, @icon.getHeight() + SPACING * 2)
-    @setColor(Constants.BUTTON_DEFAULT_COLOR)
     @addChild(@icon)
     @icon.setX SPACING
     @icon.setY SPACING
+
+
+# Assistant ###################################################################
+# a group of DropActionButtons in a + shape, with swap action in the middle,
+# then "split" actions closest to the center, and shove actions farther away.
 
 class Assistant extends RectLib.Rect
   SPACING = 10
@@ -44,27 +51,46 @@ class Assistant extends RectLib.Rect
     for r in roles
       buttons.push("#{r}-#{d}")
 
-  constructor: ->
-    for role in buttons
-      this[role] = new DropActionButton(role_icon(role))
+  default_color: Constants.NativeColors.RED # do not set color
 
+  constructor: ->
+    # defie handlers for role widgets ##########################################
+
+    @widget_hadlers = {
+      'mouse-move': (widget, x, y) =>
+        @emit('mouse-move-role', widget.role, x, y)
+
+      'mouse-up': (widget, x, y) =>
+        @emit('mouse-up-role', widget.role)
+
+      'mouse-leave': (widget, x, y) =>
+        @emit('mouse-leave-role', widget.role)
+    }
+
+    # create widgets ##########################################################
+
+    # @setColor(Constants.NativeColors.NO_COLOR)
+    for role in buttons
+      this[role] = new DropActionButton(role)
+      for signal, handler of @widget_hadlers
+        this[role].connect(signal, handler)
+
+    # our dimensions will be defined by the size of the buttons and our spacing
     example_icon = this[buttons[0]]
     icon_width = example_icon.getWidth()
     icon_height = example_icon.getHeight()
 
-    # container rect
     super(
       icon_width * 5 + SPACING * 6,
       icon_height  * 5 + SPACING * 6
     )
-    @setColor(Constants.NO_COLOR)
 
+    # add children now that we have instantianted the rect
     for role in buttons
       @addChild(this[role])
 
-    # @setColor(Constants.NativeColors.NO_COLOR)
 
-    # lay out icons
+    # lay out children ########################################################
     center_col_x = SPACING * 3 + icon_width * 2
     idx = 0
     for role in ["shove-top", "split-top", "swap-center", "split-bottom", "shove-bottom"]
@@ -79,7 +105,32 @@ class Assistant extends RectLib.Rect
       this[role].setX SPACING * (1 + idx) + icon_width * idx
       idx += 1
 
-  # bind and show the assistant for a destination window
-  invokeOn: (dest) ->
+
+    # properties
+    @target = null
+
+  # Property methods
+  setTarget: (t) ->
+    @target = t
+
+    if t # we will pass null to unset the target
+      # center self over target
+      [t_x, t_y] = RectLib.global_position(t)
+      mock_target = new RectLib.AbstractRect(t.getWidth(), t.getHeight(), t_x, t_y)
+      [x, y] = RectLib.center(mock_target, this)
+
+      Logger.Log("Assistant: moving to #{x}, #{y}")
+
+      @setX x
+      @setY y
+
+    @emit('target-changed', t)
+
+  getTarget: ->
+    @target
 
 
+# Exports #####################################################################
+exports = {
+  Assistant: Assistant
+}
